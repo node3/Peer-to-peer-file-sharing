@@ -1,3 +1,4 @@
+# RFC class contains the information about an RFC
 class RFC:
     ttl_decrement_value = 5
 
@@ -15,6 +16,7 @@ class RFC:
                 self.mark_inactive()
 
 
+# RFCIndex class represents the node in the linked list. Instantiate this class to create nodes
 class RFCIndex:
     def __init__(self, rfc):
         self.rfc = rfc
