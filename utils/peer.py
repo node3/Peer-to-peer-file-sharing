@@ -33,7 +33,7 @@ class PeerRecord:
         self.last_reg = new_reg_time
 
 
-# Peers are the nodes of the linked listed. Create the linked list by instantiating this class.
+# Peers are the nodes of the linked list. Create the linked list by instantiating this class.
 class Peers:
     def __init__(self, peer_record):
         self.peer_record = peer_record
