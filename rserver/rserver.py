@@ -9,6 +9,9 @@ def load_config():
     return config
 
 
+## Do ttl reduction flow
+
+
 def main():
     config = load_config()
     head = None
@@ -30,23 +33,32 @@ def main():
             print client_address
             data = connection.recv(1024)
             message = utils.Peer2Server(data)
-            try:
-                data = json.loads(message.data)
-            except ValueError:
-                print 'Request handler failed to load json'
+            data = message.data
 
+            # Peer registration flow
             if message.command == "Register":
                 if "port" in data:
-                    head = register(head, message.ip, data["port"])
-                    response = utils.Peer2Server("Register", sock.getsockname()[0], "Success")
+                    head, data = register(head, message.ip, data["port"])
+                    data["cookie"] = head.peer.cookie
+                    response = utils.Peer2Server(message.command, sock.getsockname()[0], data)
                     connection.sendall(response.formatted())
                 else:
                     raise Exception("Received register request without port field.\n%s" % message.formatted())
 
+            # Peer exit flow
             if message.command == "Leave":
-                leave(head, message.ip)
+                if "cookie" in data:
+                    head, data = leave(head, data["cookie"])
+                    response = utils.Peer2Server(message.command, sock.getsockname()[0], data)
+                    connection.sendall(response.formatted())
+                else:
+                    raise Exception("Received leave request without cookie field.\n%s" % message.formatted())
+
+            # Peer query flow
             if message.command == "PQuery":
                 p_query(head)
+
+            # Peer keep alive flow
             if message.command == "KeepAlive":
                 keep_alive(message.ip, message.data)
         except socket.error as err:

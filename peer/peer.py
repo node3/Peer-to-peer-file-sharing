@@ -22,8 +22,25 @@ def main():
         print "Connect to server failed with error %s" % err
 
     try:
-        # Send data
-        message = utils.Peer2Server("Register", sock.getsockname()[0], "{\"port\" :%s}" % config["rs"]["port"])
+        # Register
+        print "\nRegistering..."
+        data = {"port": config["rs"]["port"]}
+        message = utils.Peer2Server("Register", sock.getsockname()[0], "%s" % str(data))
+        print 'sending "%s"' % message.formatted()
+        sock.sendall(message.formatted())
+
+        print "waiting for response"
+        data = sock.recv(1024)
+        message = utils.Peer2Server(data)
+        data = message.data
+        print "Received %s" % data
+    except socket.error as err:
+        print "Communication to server failed with error %s" % err
+
+    try:
+        # Leave
+        print "\nLeaving"
+        message = utils.Peer2Server("Leave", sock.getsockname()[0], "%s" % data)
         print 'sending "%s"' % message.formatted()
         sock.sendall(message.formatted())
 
@@ -32,7 +49,7 @@ def main():
         print "received response"
         print data
     except socket.error as err:
-        print "Send data to server failed with error %s" % err
+        print "Communication to server failed with error %s" % err
     #
     # finally:
     #     print >> sys.stderr, 'closing socket'

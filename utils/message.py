@@ -11,7 +11,10 @@ class Peer2Server:
                 raise "Command %s not in allowed message types" % command
             self.command = command
             self.ip = ip
-            self.data = data
+            if isinstance(data, dict):
+                self.data = data
+            else:
+                self.data = eval(data)
             self.version = version
             Peer2Server.count += 1
 
@@ -20,7 +23,7 @@ class Peer2Server:
             self.command = fields[0]
             self.ip = fields[1]
             self.version = fields[2]
-            self.data = fields[3]
+            self.data = eval(fields[3])
 
         else:
             raise Exception("Illegal instantiation of Peer2Server. Check parameters.")

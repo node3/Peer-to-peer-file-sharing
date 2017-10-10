@@ -35,11 +35,11 @@ class PeerRecord:
 
 # Peers are the nodes of the linked list. Create the linked list by instantiating this class.
 class Peers:
-    def __init__(self, peer_record):
-        self.peer_record = peer_record
+    def __init__(self, peer):
+        self.peer = peer
         self.nxt = None
 
     def decrement_all_ttl(self):
-        self.peer_record.decrement_ttl()
+        self.peer.decrement_ttl()
         if self.nxt:
             self.nxt.decrement_all_ttl()
