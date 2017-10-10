@@ -1,5 +1,4 @@
 import socket
-import sys
 import json
 import utils
 
@@ -24,9 +23,14 @@ def main():
 
     try:
         # Send data
-        message = utils.Peer2Server("Register", sock.getsockname()[0], "{port :%s}" % config["rs"]["port"])
+        message = utils.Peer2Server("Register", sock.getsockname()[0], "{\"port\" :%s}" % config["rs"]["port"])
         print 'sending "%s"' % message.formatted()
         sock.sendall(message.formatted())
+
+        print "waiting for response"
+        data = sock.recv(1024)
+        print "received response"
+        print data
     except socket.error as err:
         print "Send data to server failed with error %s" % err
     #

@@ -1,6 +1,6 @@
 {
   "rs": {
-    "port": 1280,
+    "port": 12802,
     "address": "localhost"
   },
   "peer": {

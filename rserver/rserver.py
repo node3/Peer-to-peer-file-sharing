@@ -1,5 +1,4 @@
-# import records
-# import sys
+from request_handler import *
 import json
 import socket
 
@@ -12,6 +11,7 @@ def load_config():
 
 def main():
     config = load_config()
+    head = None
 
     # Create socket and listen for incoming connections
     try:
@@ -29,7 +29,26 @@ def main():
         try:
             print client_address
             data = connection.recv(1024)
-            print 'received "%s"' % data
+            message = utils.Peer2Server(data)
+            try:
+                data = json.loads(message.data)
+            except ValueError:
+                print 'Request handler failed to load json'
+
+            if message.command == "Register":
+                if "port" in data:
+                    head = register(head, message.ip, data["port"])
+                    response = utils.Peer2Server("Register", sock.getsockname()[0], "Success")
+                    connection.sendall(response.formatted())
+                else:
+                    raise Exception("Received register request without port field.\n%s" % message.formatted())
+
+            if message.command == "Leave":
+                leave(head, message.ip)
+            if message.command == "PQuery":
+                p_query(head)
+            if message.command == "KeepAlive":
+                keep_alive(message.ip, message.data)
         except socket.error as err:
             print "Accept incoming connections failed with error %s" % err
 
