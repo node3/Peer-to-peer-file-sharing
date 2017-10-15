@@ -1,5 +1,4 @@
-import record
-import encode
+import records
 import commons
 
 
@@ -10,33 +9,33 @@ def process_request(head, request):
         if "port" in request.data:
             head, data = register(head, request.ip, request.data["port"])
             data["cookie"] = head.peer.cookie
-            message = encode.Peer2Server(request.command, commons.get_ip_address(), data)
+            message = records.Peer2Server(request.command, commons.get_ip_address(), data)
         else:
-            raise Exception("Received Register request without port field.\n%s" % request.formatted())
+            raise Exception("Received Register request without port field.\n%s" % request.encode())
 
     elif request.command == "Leave":
         if "cookie" in request.data:
             head, data = leave(head, request.data["cookie"])
-            message = encode.Peer2Server(request.command, commons.get_ip_address(), data)
+            message = records.Peer2Server(request.command, commons.get_ip_address(), data)
         else:
-            raise Exception("Received Leave request without cookie field.\n%s" % request.formatted())
+            raise Exception("Received Leave request without cookie field.\n%s" % request.encode())
 
     elif request.command == "PQuery":
         if "cookie" in request.data:
             data = p_query(head, request.data["cookie"])
-            message = encode.Peer2Server(request.command, commons.get_ip_address(), data)
+            message = records.Peer2Server(request.command, commons.get_ip_address(), data)
         else:
-            raise Exception("Received PQuery request without cookie field.\n%s" % request.formatted())
+            raise Exception("Received PQuery request without cookie field.\n%s" % request.encode())
 
     elif request.command == "KeepAlive":
         if "cookie" in request.data:
             data = keep_alive(head, request.data["cookie"])
-            message = encode.Peer2Server(request.command, commons.get_ip_address(), data)
+            message = records.Peer2Server(request.command, commons.get_ip_address(), data)
         else:
-            raise Exception("Received KeepAlive request without cookie field.\n%s" % request.formatted())
+            raise Exception("Received KeepAlive request without cookie field.\n%s" % request.encode())
 
     else:
-        raise Exception("Request has an invalid command. See encode package for message format.")
+        raise Exception("Request has an invalid command. See records package for message format.")
 
     commons.debug("Exiting rserver.process_request")
     return head, message
@@ -45,8 +44,8 @@ def process_request(head, request):
 # Register a new peer into the server. Creates a new node and adds it to the linked list.
 def register(head, ip, port):
     commons.debug("Entering rserver.register")
-    peer = record.PeerRecord(ip, port)
-    node = record.Peers(peer)
+    peer = records.PeerRecord(ip, port)
+    node = records.Peers(peer)
     node.nxt = head
     data = {"status": "Success"}
     commons.debug("Exiting rserver.register")

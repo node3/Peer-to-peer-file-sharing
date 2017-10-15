@@ -6,6 +6,7 @@ class Peer2Server:
     count = 0
 
     def __init__(self, command, ip=None, data=None, version='P2P-DI/1.0'):
+        # This is to be used to create a message for encoding
         if ip and data:
             if command not in peer2server_msg_types:
                 raise "Command %s not in allowed message types" % command
@@ -18,6 +19,7 @@ class Peer2Server:
             self.version = version
             Peer2Server.count += 1
 
+        # This is to be used for decoding a message received as string
         elif not (data and ip):
             fields = command.split("\n\t")
             try:
@@ -30,6 +32,5 @@ class Peer2Server:
         else:
             raise Exception("Illegal instantiation of Peer2Server. Check parameters.")
 
-    def formatted(self):
+    def encode(self):
         return "\n\t%s\n\t%s\n\t%s\n\t%s" % (self.command, self.ip, self.version, self.data)
-

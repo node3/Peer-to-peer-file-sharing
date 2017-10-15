@@ -1,13 +1,13 @@
 from request_handler import *
 from utils import *
-import record
+import records
 from os import system
 import argparse
 
 
 def main():
     config = commons.load_config(args.config)
-    peer_info = record.PeerInfo()
+    peer_info = records.PeerInfo()
     while True:
         try:
             choice = user_interaction(peer_info)

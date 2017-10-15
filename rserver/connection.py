@@ -1,5 +1,5 @@
 import socket
-import encode
+import records
 from utils import *
 import commons
 
@@ -24,8 +24,8 @@ def accept_connection(sock):
         connection, client_address = sock.accept()
         commons.debug("Received connection request from (%s, %s)" % client_address)
         raw_msg = connection.recv(1024)
-        request = encode.Peer2Server(raw_msg)
-        commons.debug("Received message %s" % request.formatted())
+        request = records.Peer2Server(raw_msg)
+        commons.debug("Received message %s" % request.encode())
         req_print(request)
         commons.debug("Exiting rserver.accept_connection")
         return connection, request
@@ -36,9 +36,9 @@ def accept_connection(sock):
 def respond_to_connection(connection, response):
     commons.debug("Entering rserver.respond_to_connection")
     resp_print(response)
-    commons.debug("Responding with message %s" % response.formatted())
+    commons.debug("Responding with message %s" % response.encode())
     try:
-        connection.sendall(response.formatted())
+        connection.sendall(response.encode())
         connection.close()
     except socket.error as err:
         print "respond_to_connection failed with error %s" % err

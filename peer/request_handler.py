@@ -1,4 +1,4 @@
-import encode
+import records
 import utils
 from connection import *
 import commons
@@ -9,13 +9,13 @@ def rs_req_resp(server_ip, server_port, command, data):
     sock = connect2server(server_ip, server_port)
 
     # Encode the request
-    request = encode.Peer2Server(command, commons.get_ip_address(), data)
+    request = records.Peer2Server(command, commons.get_ip_address(), data)
     utils.req_print(request)
 
     # Send request to server
     try:
-        sock.sendall(request.formatted())
-        commons.debug("Request sent %s" % request.formatted())
+        sock.sendall(request.encode())
+        commons.debug("Request sent %s" % request.encode())
     except socket.error as err:
         raise Exception("\nFailed to send %s request to server with error %s" % command, err)
 
@@ -27,7 +27,7 @@ def rs_req_resp(server_ip, server_port, command, data):
         raise Exception("\nFailed to receive %s response from server with error %s" % command, err)
 
     # Decode the response
-    response = encode.Peer2Server(msg_str)
+    response = records.Peer2Server(msg_str)
     utils.resp_print(response)
     sock.close()
 
