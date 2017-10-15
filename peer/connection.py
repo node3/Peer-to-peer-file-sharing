@@ -9,7 +9,7 @@ def connect2server(ip, port):
     try:
         sock.connect(server_address)
     except socket.error as err:
-        raise Exception("Connect to server failed with error %s" % err)
+        raise Exception("Connect to server (%s, %s) failed with error %s" % (ip, port, err))
 
     return sock
 

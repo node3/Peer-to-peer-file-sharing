@@ -1,5 +1,5 @@
 import socket
-import protocol
+import encode
 from utils import *
 
 
@@ -18,7 +18,7 @@ def accept_connection(sock):
     try:
         connection, client_address = sock.accept()
         raw_msg = connection.recv(1024)
-        request = protocol.Peer2Server(raw_msg)
+        request = encode.Peer2Server(raw_msg)
         req_print(request)
         return connection, request
     except socket.error as err:

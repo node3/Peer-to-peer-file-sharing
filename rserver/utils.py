@@ -11,4 +11,3 @@ def resp_print(message):
     print "\n%s : sending %s response: %s" % (datetime.datetime.now(),
                                               message.command,
                                               message.data)
-

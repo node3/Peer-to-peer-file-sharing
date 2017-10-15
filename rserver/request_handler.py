@@ -1,5 +1,5 @@
 import record
-import protocol
+import encode
 import commons
 
 
@@ -9,27 +9,33 @@ def process_request(head, request):
         if "port" in request.data:
             head, data = register(head, request.ip, request.data["port"])
             data["cookie"] = head.peer.cookie
-            return head, protocol.Peer2Server(request.command, commons.get_ip_address(), data)
+            return head, encode.Peer2Server(request.command, commons.get_ip_address(), data)
         else:
             raise Exception("Received register request without port field.\n%s" % request.formatted())
 
     elif request.command == "Leave":
         if "cookie" in request.data:
             head, data = leave(head, request.data["cookie"])
-            return head, protocol.Peer2Server(request.command, commons.get_ip_address(), data)
+            return head, encode.Peer2Server(request.command, commons.get_ip_address(), data)
         else:
             raise Exception("Received leave request without cookie field.\n%s" % request.formatted())
 
-    # Peer query flow
     elif request.command == "PQuery":
-        p_query(head)
+        if "cookie" in request.data:
+            data = p_query(head, request.data["cookie"])
+            return head, encode.Peer2Server(request.command, commons.get_ip_address(), data)
+        else:
+            raise Exception("Received pquery request without cookie field.\n%s" % request.formatted())
 
-    # Peer keep alive flow
     elif request.command == "KeepAlive":
-        keep_alive(request.ip, request.data)
+        if "cookie" in request.data:
+            data = keep_alive(head, request.data["cookie"])
+            return head, encode.Peer2Server(request.command, commons.get_ip_address(), data)
+        else:
+            raise Exception("Received pquery request without cookie field.\n%s" % request.formatted())
 
     else:
-        print "Request has an invalid command. See protocol package for message format."
+        raise Exception("Request has an invalid command. See encode package for message format.")
 
 
 # Register a new peer into the server. Creates a new node and adds it to the linked list.
@@ -62,13 +68,26 @@ def leave(head, cookie):
 
 
 # Query peers from the server
-def p_query(head):
-    print head
-    return
+def p_query(head, cookie):
+    ptr = head
+    data = {"peers": [1, 3, 2, 4]}
+    # data = {"peers": []}
+    while ptr:
+        if ptr.peer.cookie != cookie:
+            data["peers"].append(ptr.peer.ip)
+        ptr = ptr.nxt
+    return data
 
 
 # Register a new peer into the server
 def keep_alive(head, cookie):
-    print cookie
-    return
-
+    data = {"status": "Failed"}
+    ptr = head
+    while ptr:
+        if ptr.peer.cookie == cookie:
+            ptr.peer.initialize_ttl()
+            data["status"] = "Success"
+            break
+        else:
+            ptr = ptr.nxt
+    return data
