@@ -1,4 +1,3 @@
-from connection import *
 from request_handler import *
 import commons
 from utils import *
@@ -6,6 +5,7 @@ from utils import *
 COOKIE = None
 HEAD = None
 PEERS = []
+
 
 def main():
     while True:
@@ -29,51 +29,53 @@ def interactive_guide():
 
 
 def choice_handler(choice):
-    if choice in [1, 2, 3, 4, 5]:
+    if choice in ["1", "2", "3", "4", "5"]:
         global COOKIE
         global PEERS
         client_id = "1"
         config = commons.load_config('../config.json')
-        sock = connect2server(config["rs"]["address"], config["rs"]["port"])
 
         # Register with server
-        if choice == 1:
+        if choice == "1":
             if COOKIE:
-                print "User is already registered with the server with id %s" % COOKIE
+                continue_or_exit("Peer is already registered with the server with id %s" % COOKIE)
             else:
                 COOKIE = register(config["rs"]["address"], config["rs"]["port"], config["peer"][client_id]["port"])
+                continue_or_exit("Registered with the server with id %s" % COOKIE)
 
         # Leave the registration server
-        elif choice == 2:
+        elif choice == "2":
             if COOKIE:
-                leave(sock, COOKIE)
+                leave(config["rs"]["address"], config["rs"]["port"], COOKIE)
+                continue_or_exit("Peer is unregistered from the server")
             else:
-                print "User is not registered with the server"
+                continue_or_exit("Peer is not registered with the server")
 
         # Query for peers
-        elif choice == 3:
+        elif choice == "3":
             if COOKIE:
-                PEERS = p_query(sock, COOKIE)
+                PEERS = p_query(config["rs"]["address"], config["rs"]["port"], COOKIE)
+                continue_or_exit("Peer list retrieved from the registration server \n[ %s ]" % ",".join(PEERS))
             else:
-                print "User is not registered with the server"
+                continue_or_exit("Peer is not registered with the server")
 
         # Send keep-alive signal to registration server
-        elif choice == 4:
+        elif choice == "4":
             if COOKIE:
-                keep_alive(sock, COOKIE)
+                keep_alive(config["rs"]["address"], config["rs"]["port"], COOKIE)
+                continue_or_exit("Keep alive signal sent successfully to the server")
             else:
-                print "User is not registered with the server"
+                continue_or_exit("Peer is not registered with the server")
 
         # Request RFC from peers
-        elif choice == 5:
+        elif choice == "5":
             if PEERS:
-                p_query(sock, PEERS)
+                continue_or_exit("Not implemented yet")
             else:
-                print "Peer list found empty. Query for peers from registration server first."
+                continue_or_exit("Peer list found empty. Query for peers from registration server first")
 
     else:
-        print ""
-        continue_or_exit()
+        continue_or_exit("Incorrect choice")
 
 
 if __name__ == "__main__":

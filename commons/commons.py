@@ -1,6 +1,9 @@
-import datetime
 import socket
 import json
+
+
+DEBUG = True
+# Debug = False
 
 
 def get_ip_address():
@@ -21,3 +24,8 @@ def load_config(config_path='../config.json'):
 
     return config
 
+
+def debug(message):
+    global DEBUG
+    if DEBUG:
+        print message

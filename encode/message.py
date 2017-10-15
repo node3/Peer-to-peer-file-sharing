@@ -20,11 +20,13 @@ class Peer2Server:
 
         elif not (data and ip):
             fields = command.split("\n")
-            self.command = fields[0]
-            self.ip = fields[1]
-            self.version = fields[2]
-            self.data = eval(fields[3])
-
+            try:
+                self.command = fields[0]
+                self.ip = fields[1]
+                self.version = fields[2]
+                self.data = eval(fields[3])
+            except IndexError:
+                raise Exception("Peer2Server could not decode the message %s" % command)
         else:
             raise Exception("Illegal instantiation of Peer2Server. Check parameters.")
 

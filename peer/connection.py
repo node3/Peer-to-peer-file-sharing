@@ -1,4 +1,5 @@
 import socket
+import commons
 
 
 # Create a connection object from client to server
@@ -10,6 +11,6 @@ def connect2server(ip, port):
         sock.connect(server_address)
     except socket.error as err:
         raise Exception("Connect to server (%s, %s) failed with error %s" % (ip, port, err))
-
+    commons.debug("Connected to server (%s, %s)" % server_address)
     return sock
 
