@@ -19,19 +19,17 @@ class Peer2Server:
             Peer2Server.count += 1
 
         elif not (data and ip):
-            fields = command.split("\n")
+            fields = command.split("\n\t")
             try:
-                self.command = fields[0]
-                self.ip = fields[1]
-                self.version = fields[2]
-                self.data = eval(fields[3])
+                self.command = fields[1]
+                self.ip = fields[2]
+                self.version = fields[3]
+                self.data = eval(fields[4])
             except IndexError:
                 raise Exception("Peer2Server could not decode the message %s" % command)
         else:
             raise Exception("Illegal instantiation of Peer2Server. Check parameters.")
 
     def formatted(self):
-        return "%s\n%s\n%s\n%s\n" % (self.command, self.ip, self.version, self.data)
-
-
+        return "\n\t%s\n\t%s\n\t%s\n\t%s" % (self.command, self.ip, self.version, self.data)
 

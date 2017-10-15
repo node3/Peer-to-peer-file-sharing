@@ -42,5 +42,4 @@ def respond_to_connection(connection, response):
         connection.close()
     except socket.error as err:
         print "respond_to_connection failed with error %s" % err
-    commons.debug("Connection closed")
     commons.debug("Exiting rserver.respond_to_connection")

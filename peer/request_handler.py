@@ -10,13 +10,12 @@ def rs_req_resp(server_ip, server_port, command, data):
 
     # Encode the request
     request = encode.Peer2Server(command, commons.get_ip_address(), data)
-    commons.debug("Request encoded %s" % request.formatted())
     utils.req_print(request)
 
     # Send request to server
     try:
         sock.sendall(request.formatted())
-        commons.debug("Request send %s" % request.formatted())
+        commons.debug("Request sent %s" % request.formatted())
     except socket.error as err:
         raise Exception("\nFailed to send %s request to server with error %s" % command, err)
 
@@ -29,7 +28,6 @@ def rs_req_resp(server_ip, server_port, command, data):
 
     # Decode the response
     response = encode.Peer2Server(msg_str)
-    commons.debug("Response decoded %s" % response.formatted())
     utils.resp_print(response)
     sock.close()
 

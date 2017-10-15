@@ -1,7 +1,7 @@
 {
   "rs": {
     "port": 12803,
-    "address": "localhost",
+    "hostname": "localhost",
     "ttl_decrement_interval": 5
   },
   "peer": {

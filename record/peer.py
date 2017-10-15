@@ -1,6 +1,6 @@
 # PeerRecord holds all the attributes associated with a peer
 class PeerRecord:
-    cookie_count = 0
+    cookie_count = 1
     ttl_decrement_value = 5
 
     def __init__(self, hostname, port):
@@ -43,3 +43,14 @@ class Peers:
         self.peer.decrement_ttl()
         if self.nxt:
             self.nxt.decrement_all_ttl()
+
+
+# PeerInfo should be used to store the peer's current state
+class PeerInfo:
+    def __init__(self):
+        self.cookie = None
+        self.peers = []
+
+    def show(self):
+        print "This peer has the following information-\n\tCookie : %s\n\tPeers: %s" % (str(self.cookie), str(self.peers))
+

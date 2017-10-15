@@ -3,6 +3,7 @@
 export PYTHONPATH='../'
 
 ##TODO
+add p2p flow
 Do ttl reduction flow
 generalise exception handling
 add approppriate sender and receiver address in the prints

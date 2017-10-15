@@ -79,11 +79,10 @@ def leave(head, cookie):
 def p_query(head, cookie):
     commons.debug("Entering rserver.p_query")
     ptr = head
-    data = {"peers": [1, 3, 2, 4]}
-    # data = {"peers": []}
+    data = {"peers": []}
     while ptr:
         if ptr.peer.cookie != cookie:
-            data["peers"].append(ptr.peer.ip)
+            data["peers"].append(ptr.peer.hostname)
         ptr = ptr.nxt
     commons.debug("Exiting rserver.p_query")
     return data
