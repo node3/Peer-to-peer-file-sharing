@@ -2,20 +2,7 @@ import datetime
 from os import system
 from sys import exit
 import commons
-
-
-def req_print(message):
-    if not commons.DEBUG:
-        print "\n%s : sending %s request : %s" % (datetime.datetime.now(),
-                                                  message.command,
-                                                  message.data)
-
-
-def resp_print(message):
-    if not commons.DEBUG:
-        print "\n%s : received %s response: %s" % (datetime.datetime.now(),
-                                                   message.command,
-                                                   message.data)
+import os
 
 
 def continue_or_exit(message):
@@ -28,3 +15,9 @@ def continue_or_exit(message):
         exit(0)
     system('clear')
 
+
+def get_rfc_dir():
+    rfc_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rfc")
+    if not os.path.exists(rfc_dir):
+        os.makedirs(rfc_dir)
+    return rfc_dir

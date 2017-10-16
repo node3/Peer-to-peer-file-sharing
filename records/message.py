@@ -1,36 +1,80 @@
-peer2server_msg_types = ("Register", "Leave", "PQuery", "KeepAlive")
+import platform
+import pickle
+
+VALID_COMMANDS = ("Register", "Leave", "PQuery", "KeepAlive", "RFCQuery", "GetRFC")
+VALID_STATUS = {
+                    "100": "Resource Not Found",
+                    "200": "Resource Found",
+                    "300": "Bad Request"
+                }
 
 
-# Peer2Server is used create messages during client and server communication
-class Peer2Server:
-    count = 0
-
-    def __init__(self, command, ip=None, data=None, version='P2P-DI/1.0'):
-        # This is to be used to create a message for encoding
-        if ip and data:
-            if command not in peer2server_msg_types:
-                raise "Command %s not in allowed message types" % command
-            self.command = command
-            self.ip = ip
-            if isinstance(data, dict):
-                self.data = data
-            else:
-                self.data = eval(data)
-            self.version = version
-            Peer2Server.count += 1
-
-        # This is to be used for decoding a message received as string
-        elif not (data and ip):
-            fields = command.split("\n\t")
-            try:
-                self.command = fields[1]
-                self.ip = fields[2]
-                self.version = fields[3]
-                self.data = eval(fields[4])
-            except IndexError:
-                raise Exception("Peer2Server could not decode the message %s" % command)
-        else:
-            raise Exception("Illegal instantiation of Peer2Server. Check parameters.")
+class P2PMessage:
+    def __init__(self):
+        self.os = P2PMessage.get_os()
+        self.hostname = P2PMessage.get_hostname()
+        self.version = P2PMessage.get_version()
 
     def encode(self):
-        return "\n\t%s\n\t%s\n\t%s\n\t%s" % (self.command, self.ip, self.version, self.data)
+        try:
+            return pickle.dumps(self)
+        except pickle.PicklingError:
+            raise Exception("Could not encode the object. \s", )
+
+    def display(self):
+        # Implement this in the child classes
+        return
+
+    @staticmethod
+    def get_os():
+        return "_".join([platform.system(), platform.release()])
+
+    @staticmethod
+    def get_hostname():
+        return platform.node()
+
+    @staticmethod
+    def get_version():
+        return 'P2P-DI/1.0'
+
+    @staticmethod
+    def decode(encoded_msg):
+        try:
+            return pickle.loads(encoded_msg)
+        except pickle.UnpicklingError:
+            raise Exception("Could not decode the object.")
+
+
+# P2RSRequest is used create request messages during client and server communication
+class P2PRequest(P2PMessage):
+    def __init__(self, command, data):
+        P2PMessage.__init__(self)
+        self.command = command
+        self.data = data
+        self.validate()
+
+    def display(self):
+        return "%s %s\n%s %s\n%s" % (self.command, self.version, self.hostname, self.os, str(self.data))
+
+    def validate(self):
+        if self.command not in VALID_COMMANDS:
+            raise Exception("%s not a valid command. Cannot create the P2PRequest object." % self.command)
+
+
+# P2RSRequest is used create request messages during client and server communication
+class P2PResponse(P2PMessage):
+    def __init__(self, status, data):
+        P2PMessage.__init__(self)
+        self.status = status
+        self.data = data
+        self.validate()
+
+    def display(self):
+        return "%s %s\n%s %s\n%s" % (self.status, self.version, self.hostname, self.os, str(self.data))
+
+    def validate(self):
+        if self.status not in VALID_STATUS.keys():
+            raise Exception("%s not a valid status. Cannot create the P2PResponse object." % self.status)
+
+    def status_message(self):
+        return VALID_STATUS[self.status]

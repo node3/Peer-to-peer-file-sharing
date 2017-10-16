@@ -25,7 +25,8 @@ def load_config(config_path='../config.json'):
     return config
 
 
-def debug(message):
+def print_msg(message):
     global DEBUG
     if DEBUG:
+        print "\n"
         print message

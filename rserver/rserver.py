@@ -12,7 +12,7 @@ def main():
     # Serve incoming connections
     while True:
         try:
-            commons.debug("\n\t--------")
+            commons.print_msg("\n\t--------")
             connection, request = accept_connection(sock)
             head, response = process_request(head, request)
             respond_to_connection(connection, response)

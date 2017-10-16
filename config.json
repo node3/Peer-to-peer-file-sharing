@@ -1,6 +1,6 @@
 {
   "rs": {
-    "port": 12803,
+    "port": 1280,
     "hostname": "localhost",
     "ttl_decrement_interval": 5
   },

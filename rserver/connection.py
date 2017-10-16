@@ -1,45 +1,42 @@
 import socket
 import records
-from utils import *
 import commons
 
 
 def listening_socket(server_address):
-    commons.debug("Entering rserver.listening_socket")
+    commons.print_msg("Entering rserver.listening_socket")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         sock.bind(server_address)
         sock.listen(1)
-        commons.debug("Registration server listening on (%s, %s)" % server_address)
+        commons.print_msg("Registration server listening on (%s, %s)" % server_address)
     except socket.error as err:
         raise Exception("listening_socket failed with error \n%s\n Possibly the port is busy. Try some other port."
                         % err)
-    commons.debug("Exiting rserver.listening_socket")
+    commons.print_msg("Exiting rserver.listening_socket")
     return sock
 
 
 def accept_connection(sock):
-    commons.debug("Entering rserver.accept_connection")
+    commons.print_msg("Entering rserver.accept_connection")
     try:
         connection, client_address = sock.accept()
-        commons.debug("Received connection request from (%s, %s)" % client_address)
+        commons.print_msg("Received connection request from (%s, %s)" % client_address)
         raw_msg = connection.recv(1024)
-        request = records.Peer2Server(raw_msg)
-        commons.debug("Received message %s" % request.encode())
-        req_print(request)
-        commons.debug("Exiting rserver.accept_connection")
+        request = records.P2PRequest.decode(raw_msg)
+        commons.print_msg("Received message \n%s" % request.display())
+        commons.print_msg("Exiting rserver.accept_connection")
         return connection, request
     except socket.error as err:
         print "accept_connection failed with error %s" % err
 
 
 def respond_to_connection(connection, response):
-    commons.debug("Entering rserver.respond_to_connection")
-    resp_print(response)
-    commons.debug("Responding with message %s" % response.encode())
+    commons.print_msg("Entering rserver.respond_to_connection")
+    commons.print_msg("Responding with message \n%s" % response.display())
     try:
         connection.sendall(response.encode())
         connection.close()
     except socket.error as err:
         print "respond_to_connection failed with error %s" % err
-    commons.debug("Exiting rserver.respond_to_connection")
+    commons.print_msg("Exiting rserver.respond_to_connection")
