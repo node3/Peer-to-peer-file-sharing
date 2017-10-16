@@ -4,7 +4,7 @@ import commons
 
 # multiplex the request to appropriate command with respective parameters
 def process_request(head, request):
-    commons.print_msg("Entering rserver.process_request")
+    commons.Logging.debug("Entering rserver.process_request")
     if request.command == "Register":
         if "port" in request.data:
             head, peer_registered = register(head, request.hostname, request.data["port"])
@@ -53,14 +53,14 @@ def process_request(head, request):
         data = {"message": "Request message has an invalid command"}
         status = "300"
 
-    commons.print_msg("Exiting rserver.process_request")
+    commons.Logging.debug("Exiting rserver.process_request")
     response = records.P2PResponse(status, data)
     return head, response
 
 
 # Register a new peer into the server. Creates a new node and adds it to the linked list.
 def register(head, hostname, port):
-    commons.print_msg("Entering rserver.register")
+    commons.Logging.debug("Entering rserver.register")
     new_peer = records.PeerRecord(hostname, port)
     ptr = head
     peer_already_registered = False
@@ -74,13 +74,13 @@ def register(head, hostname, port):
         peer_registered = True
     else:
         peer_registered = False
-    commons.print_msg("Exiting rserver.register")
+    commons.Logging.debug("Exiting rserver.register")
     return head, peer_registered
 
 
 # Leave removes a peer from the linked list
 def leave(head, cookie):
-    commons.print_msg("Entering rserver.leave")
+    commons.Logging.debug("Entering rserver.leave")
     prev = None
     ptr = head
     peer_ejected = False
@@ -96,13 +96,13 @@ def leave(head, cookie):
             break
         else:
             ptr = ptr.nxt
-    commons.print_msg("Exiting rserver.leave")
+    commons.Logging.debug("Exiting rserver.leave")
     return head, peer_ejected
 
 
 # Query peers from the server
 def p_query(head, cookie):
-    commons.print_msg("Entering rserver.p_query")
+    commons.Logging.debug("Entering rserver.p_query")
     ptr = head
     data = {"peers": []}
     while ptr:
@@ -113,13 +113,13 @@ def p_query(head, cookie):
                     }
             data["peers"].append(peer)
         ptr = ptr.nxt
-    commons.print_msg("Exiting rserver.p_query")
+    commons.Logging.debug("Exiting rserver.p_query")
     return data
 
 
 # Register a new peer into the server
 def keep_alive(head, cookie):
-    commons.print_msg("Entering rserver.keep_alive")
+    commons.Logging.debug("Entering rserver.keep_alive")
     ttl_updated = False
     ptr = head
     while ptr:
@@ -129,5 +129,5 @@ def keep_alive(head, cookie):
             break
         else:
             ptr = ptr.nxt
-    commons.print_msg("Exiting rserver.keep_alive")
+    commons.Logging.debug("Exiting rserver.keep_alive")
     return ttl_updated

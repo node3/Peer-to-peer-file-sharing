@@ -6,12 +6,12 @@ import os
 
 
 def continue_or_exit(message):
-    print message
+    commons.Logging.info(message)
     try:
-        print "\nPress any key to go back to the menu. Press Control+C to exit."
+        commons.Logging.info("\nPress any key to go back to the menu. Press Control+C to exit.")
         raw_input()
     except KeyboardInterrupt:
-        print "Client shutting down"
+        commons.Logging.info("Client shutting down")
         exit(0)
     system('clear')
 

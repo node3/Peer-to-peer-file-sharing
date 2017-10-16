@@ -12,19 +12,22 @@ def main():
     # Serve incoming connections
     while True:
         try:
-            commons.print_msg("\n\t--------")
+            commons.Logging.info("\n\t--------")
             connection, request = accept_connection(sock)
             head, response = process_request(head, request)
             respond_to_connection(connection, response)
         except KeyboardInterrupt:
-            print "Server shutting down"
+            commons.Logging.exit("Server shutting down")
             break
     sock.close()
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--config", help="Path to the config file", type=str, required=True)
+parser.add_argument("-d", "--debug", help="Enter debug mode", type=bool, default=False)
 args = parser.parse_args()
+
+commons.Logging.debug_mode = args.debug
 if __name__ == "__main__":
     main()
 

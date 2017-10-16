@@ -52,17 +52,19 @@ class PeerInfo:
         self.rfc_index_head = None
         self.peers = []
 
-    def show(self):
-        print "This peer has the following information-\n\tCookie : %s\n\tPeers: %s" % (str(self.cookie), str(self.peers))
-        self.show_rfc_index()
+    def current_state(self):
+        message = "\n\tCurrently the peer is aware of the following :" \
+                  "\n\tPeer registration id/cookie : %s" \
+                  "\n\tKnown peers in the swarm: %s" \
+                  "\n\n\t%-16s%-8s%-40s" % (str(self.cookie), str(self.peers), "Hostname", "RFC #", "RFC Title")
 
-    def show_rfc_index(self):
-        print "\n\t%-16s%-8s%-40s" % ("Hostname", "RFC #", "RFC Title")
-        print "\n\t" + '-'*64
+        message += "\n\t" + '-'*64
         ptr = self.rfc_index_head
         empty = True
         while ptr:
             empty = False
-            print "\n\t%-16s%-8s%-40s" % (ptr.rfc.hostname, ptr.rfc.number, ptr.rfc.title)
+            message += "\n\t%-16s%-8s%-40s" % (ptr.rfc.hostname, ptr.rfc.number, ptr.rfc.title)
         if empty:
-            print "\n\t%-16s%-8s%-40s" % ("None", "None", "None")
+            message += "\n\t%-16s%-8s%-40s" % ("None", "None", "None")
+
+        return message

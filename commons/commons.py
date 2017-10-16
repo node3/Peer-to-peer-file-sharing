@@ -2,10 +2,6 @@ import socket
 import json
 
 
-DEBUG = True
-# Debug = False
-
-
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
@@ -25,8 +21,30 @@ def load_config(config_path='../config.json'):
     return config
 
 
-def print_msg(message):
-    global DEBUG
-    if DEBUG:
+class Logging:
+    debug_mode = True
+
+    def __init__(self):
+        return
+
+    @staticmethod
+    def debug(message):
+        if Logging.debug_mode:
+            Logging.info(message)
+
+    @staticmethod
+    def info(message):
         print "\n"
         print message
+
+    @staticmethod
+    def error(message):
+        print "\n"
+        print message
+        exit(1)
+
+    @staticmethod
+    def exit(message):
+        print "\n"
+        print message
+        exit(0)

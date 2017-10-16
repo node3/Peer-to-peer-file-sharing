@@ -6,7 +6,7 @@ import commons
 
 # Handles the request response between client and rs 
 def rs_communication(server_ip, server_port, command, data):
-    commons.print_msg("Entering peer.rs_communication")
+    commons.Logging.debug("Entering peer.rs_communication")
     sock = connect2server(server_ip, server_port)
 
     # Encode the request
@@ -14,7 +14,7 @@ def rs_communication(server_ip, server_port, command, data):
 
     # Send request to server
     try:
-        commons.print_msg("Sending request \n%s" % request.display())
+        commons.Logging.info("Sending request \n%s" % request.display())
         sock.sendall(request.encode())
     except socket.error as err:
         raise Exception("\nFailed to send %s request to server with error %s" % command, err)
@@ -27,44 +27,44 @@ def rs_communication(server_ip, server_port, command, data):
 
     # Decode the response
     response = records.P2PResponse.decode(msg_str)
-    commons.print_msg("Received response \n%s" % response.display())
-    commons.print_msg("Interpretation of the server response code : %s" % response.status_message())
+    commons.Logging.info("Received response \n%s" % response.display())
+    commons.Logging.info("Interpretation of the server response code : %s" % response.status_message())
     sock.close()
-    commons.print_msg("Exiting peer.rs_communication")
+    commons.Logging.debug("Exiting peer.rs_communication")
     return response
 
 
 # Register a client with the server
 def register(server_ip, server_port, client_port):
-    commons.print_msg("Entering peer.register")
+    commons.Logging.debug("Entering peer.register")
     data = {"port": client_port}
     response = rs_communication(server_ip, server_port, "Register", data)
-    commons.print_msg("Exiting peer.register")
+    commons.Logging.debug("Exiting peer.register")
     return response.data["cookie"]
 
 
 # De-register a client from the server
 def leave(server_ip, server_port, cookie):
-    commons.print_msg("Entering peer.leave")
+    commons.Logging.debug("Entering peer.leave")
     data = {"cookie": cookie}
     rs_communication(server_ip, server_port, "Leave", data)
-    commons.print_msg("Exiting peer.leave")
+    commons.Logging.debug("Exiting peer.leave")
     return None
 
 
 # Send keep alive signal
 def keep_alive(server_ip, server_port, cookie):
-    commons.print_msg("Entering peer.keep_alive")
+    commons.Logging.debug("Entering peer.keep_alive")
     data = {"cookie": cookie}
     rs_communication(server_ip, server_port, "KeepAlive", data)
-    commons.print_msg("Exiting peer.keep_alive")
+    commons.Logging.debug("Exiting peer.keep_alive")
     return None
 
 
 # Query for peers
 def p_query(server_ip, server_port, cookie):
-    commons.print_msg("Entering peer.p_query")
+    commons.Logging.debug("Entering peer.p_query")
     data = {"cookie": cookie}
     response = rs_communication(server_ip, server_port, "PQuery", data)
-    commons.print_msg("Exiting peer.p_query")
+    commons.Logging.debug("Exiting peer.p_query")
     return response.data["peers"]
