@@ -1,12 +1,10 @@
-import utils
 import pickle
-import os
-import records
+from commons import *
 
 
 # Register a client with the server
 def register_request(server_ip, server_port, client_port):
-    utils.Logging.debug("Entering peer.handle_registeration")
+    utils.Logging.debug("Entering peer.register_request")
     sock = utils.send_request(server_ip, server_port, "Register", {"port": client_port})
     response = utils.accept_response(sock)
     if response.status == "200":
@@ -15,11 +13,11 @@ def register_request(server_ip, server_port, client_port):
     else:
         response_ok = False
         data = response.data["message"]
-    utils.Logging.debug("Exiting peer.handle_registeration")
+    utils.Logging.debug("Exiting peer.register_request")
     return response_ok, data
 
 
-# De-handle_registeration a client from the server
+# De-registeration a client from the server
 def leave_request(server_ip, server_port, cookie):
     utils.Logging.debug("Entering peer.leave_request")
     data = {"cookie": cookie}
@@ -66,30 +64,26 @@ def keep_alive_request(server_ip, server_port, cookie):
 
 
 # Query a peer for RFCs
-def rfc_query_request(peers):
-    utils.Logging.debug("Entering peer.rfc_query_request")
+def rfcs_query_request(peers):
+    utils.Logging.debug("Entering peer.rfcs_query_request")
     rfc_index_head = None
-    data = {}
     # Request all peers for RFCs
     for peer in peers:
-        sock = utils.send_request(peer["hostname"], peer["port"], "RFCQuery", data)
+        sock = utils.send_request(peer["hostname"], peer["port"], "RFCQuery", {})
         response = utils.accept_response(sock)
-        # Create record for each RFC received
-        for rfc in response.data["rfcs"]:
-            rfc_node = records.RFCIndex(records.RFC(peer["hostname"], rfc["number"], rfc["title"]))
-            # Insert record into a linked list
-            if rfc_index_head:
-                rfc_node.nxt = rfc_index_head
-            rfc_index_head = rfc_node
-    utils.Logging.debug("Exiting peer.rfc_query_request")
+        if response.status == "200":
+            # Create record for each RFC received
+            for rfc in response.data["rfcs"]:
+                rfc_node = records.RFCs(records.RFC(peer["hostname"], rfc["number"], rfc["title"]))
+                rfc_index_head = rfc_node.prepend(rfc_index_head)
+    utils.Logging.debug("Exiting peer.rfcs_query_request")
     return rfc_index_head
 
 
 # Get RFC from a peer
 def get_rfc(peer_ip, peer_port, rfc_id):
     utils.Logging.debug("Entering peer.get_rfc")
-    data = {"rfc": rfc_id}
-    sock = utils.send_request(peer_ip, peer_port, "GetRFC", data)
+    sock = utils.send_request(peer_ip, peer_port, "GetRFC", {"rfc": rfc_id})
     response = utils.accept_response(sock)
     rfc_path = os.path.join(get_rfc_dir(), rfc_id + ".txt")
     with open(rfc_path, "w") as f:
@@ -98,8 +92,18 @@ def get_rfc(peer_ip, peer_port, rfc_id):
     return rfc_path
 
 
-def get_rfc_dir():
-    rfc_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rfc")
-    if not os.path.exists(rfc_dir):
-        os.makedirs(rfc_dir)
-    return rfc_dir
+# Handle an rfc query request
+def handle_rfcs_query():
+    utils.Logging.debug("Entering peer.handle_rfcs_query")
+    data = read_rfc_metadata()
+    utils.Logging.debug("Exiting peer.handle_rfcs_query")
+    return data
+
+
+# Handle an rfc query request
+def handle_get_rfc(rfc_number):
+    utils.Logging.debug("Entering peer.handle_rfcs_query")
+    data = None
+    utils.Logging.debug("Exiting peer.handle_rfcs_query")
+    return data
+

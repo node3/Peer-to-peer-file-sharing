@@ -16,7 +16,7 @@ def main():
             head, response = process_request(head, request)
             utils.send_response(connection, response)
         except KeyboardInterrupt:
-            utils.Logging.exit("Server shutting down")
+            utils.Logging.exit("Registration server shutting down")
             break
     sock.close()
 

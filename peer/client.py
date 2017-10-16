@@ -1,4 +1,5 @@
 from commands import *
+from commons import *
 import records
 from os import system
 import argparse
@@ -8,6 +9,7 @@ import utils
 def main():
     config = utils.load_config(args.config)
     peer_info = records.PeerInfo()
+    peer_info.rfc_index_head = build_rfc_index()
     while True:
         try:
             choice = user_interaction()
@@ -86,9 +88,10 @@ def flow_handler(peer_info, config, choice):
 
     # Query RFCs from peers
     elif choice == "5":
+        peer_info.peers = [{"hostname": "192.168.0.15", "port": 1281}]
         if peer_info.peers:
-            peer_info.rfc_index_head = rfc_query_request(peer_info.peers)
-            continue_or_exit("Received list of RFCs from peers. Updated the local index.")
+            peer_info.rfc_index_head = rfcs_query_request(peer_info.peers)
+            continue_or_exit("Updated the local index")
         else:
             continue_or_exit("Peer list found empty. Query for peers from registration server first")
 

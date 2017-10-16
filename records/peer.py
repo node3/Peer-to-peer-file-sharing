@@ -64,6 +64,7 @@ class PeerInfo:
         while ptr:
             empty = False
             message += "\n\t%-16s%-8s%-40s" % (ptr.rfc.hostname, ptr.rfc.number, ptr.rfc.title)
+            ptr = ptr.nxt
         if empty:
             message += "\n\t%-16s%-8s%-40s" % ("None", "None", "None")
 
