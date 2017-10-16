@@ -1,7 +1,7 @@
 import socket
 import records
 from commons import *
-
+import time
 
 # Create a connection object from client to server
 def connect2server(hostname, port):
@@ -102,14 +102,17 @@ def send_response(connection, response):
 def accept_rfc(sock, filename):
     Logging.debug("Entering utils.accept_rfc")
     f = open(filename, "wb")
-    raw_msg = sock.recv(1024)
-    while raw_msg:
-        response = records.P2PResponse.decode(raw_msg)
-        print "******************received %s" % response.display()
-        f.write(response.data)
-        raw_msg = sock.recv(1024)
-    f.close()
-    sock.close()
+    raw_msg = sock.recv(4096)
+    try:
+        while raw_msg:
+            response = records.P2PResponse.decode(raw_msg)
+            print "******************received %s" % response.display()
+            f.write(response.data)
+            raw_msg = sock.recv(4096)
+        f.close()
+        sock.close()
+    except socket.error as err:
+        Logging.info("Could not download the complete rfc. %s" % err)
     Logging.debug("Exiting utils.accept_rfc")
     return
 
@@ -118,14 +121,19 @@ def accept_rfc(sock, filename):
 def send_rfc(connection, filename):
     Logging.debug("Entering utils.send_rfc")
     f = open(filename, "rb")
-    msg = f.read(1024)
-    while msg:
-        response = records.P2PResponse("200", msg)
-        print "******************sending %s" % response.display()
-        connection.send(response.encode())
-        msg = f.read(1024)
-    connection.shutdown(socket.SHUT_WR)
-    f.close()
+    msg = f.read(256)
+    try:
+        while msg:
+            response = records.P2PResponse("200", msg)
+            print "******************sending %s" % response.display()
+            connection.sendall(response.encode())
+            msg = f.read(256)
+            time.sleep(0.009)
+        connection.shutdown(socket.SHUT_WR)
+        f.close()
+        connection.close()
+    except socket.error as err:
+        Logging.info("Could not send the complete rfc. %s" % err)
     Logging.debug("Exiting utils.send_rfc")
     return
 

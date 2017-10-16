@@ -20,7 +20,7 @@ class P2PMessage:
         try:
             return pickle.dumps(self)
         except pickle.PicklingError:
-            raise Exception("Could not encode the object. \s", )
+            raise Exception("Could not encode the object")
 
     def display(self):
         # Implement this in the child classes
@@ -43,7 +43,7 @@ class P2PMessage:
         try:
             return pickle.loads(encoded_msg)
         except pickle.UnpicklingError:
-            raise Exception("Could not decode the object.")
+            raise Exception("Could not decode the object")
 
 
 # P2RSRequest is used create request messages during client and server communication

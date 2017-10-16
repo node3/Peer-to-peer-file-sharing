@@ -81,11 +81,12 @@ def rfcs_query_request(peers):
 
 
 # Get RFC from a peer
-def rfc_request(peer_ip, peer_port, rfc_id):
+def rfc_request(peer_ip, peer_port, rfc_id, rfc_title):
     utils.Logging.debug("Entering peer.rfc_request")
     sock = utils.send_request(peer_ip, peer_port, "GetRFC", {"rfc": rfc_id})
-    rfc_path = os.path.join(get_rfc_dir(), rfc_id + ".txt1") ######################
+    rfc_path = os.path.join(get_rfc_dir(), rfc_id + ".txt")
     utils.accept_rfc(sock, rfc_path)
+    update_rfc_metadata(rfc_id, rfc_title)
     utils.Logging.debug("Exiting peer.rfc_request")
     return rfc_path
 
