@@ -5,6 +5,7 @@ VALID_COMMANDS = ("Register", "Leave", "PQuery", "KeepAlive", "RFCQuery", "GetRF
 VALID_STATUS = {
                     "100": "Resource Not Found",
                     "200": "Resource Found",
+                    "201": "Resource Updated",
                     "300": "Bad Request"
                 }
 

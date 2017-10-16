@@ -1,21 +1,20 @@
-from rs_communication import *
-from peer_communication import *
-from utils import *
+from rs_commands import *
+from peer_commands import *
 import records
 from os import system
 import argparse
-import commons
+import utils
 
 
 def main():
-    config = commons.load_config(args.config)
+    config = utils.load_config(args.config)
     peer_info = records.PeerInfo()
     while True:
         try:
             choice = user_interaction()
             flow_handler(peer_info, config, choice)
         except KeyboardInterrupt:
-            commons.Logging.exit("Client shutting down")
+            utils.Logging.exit("Client shutting down")
 
 
 def user_interaction():
@@ -30,7 +29,7 @@ def user_interaction():
             "\n\t\t(6) Get RFC from a peer" \
             "\n\t\t(7) View current state of the peer" \
             "\n\t\t(0) Exit"
-    commons.Logging.info(guide)
+    utils.Logging.info(guide)
     choice = raw_input()
     return choice
 
@@ -44,31 +43,45 @@ def flow_handler(peer_info, config, choice):
         if peer_info.cookie:
             continue_or_exit("Peer is already registered with the server with id %s" % peer_info.cookie)
         else:
-            peer_info.cookie = register(server_hostname, server_port, config["peer"][CLIENT_UID]["port"])
-            continue_or_exit("Registered with the server with id %s" % peer_info.cookie)
+            response_ok, data = register(server_hostname, server_port, config["peer"][CLIENT_UID]["port"])
+            if response_ok:
+                peer_info.cookie = data
+                continue_or_exit("Registered with the server with id %s" % peer_info.cookie)
+            else:
+                continue_or_exit("Peer could not register. Server says : %s" % data)
 
     # Leave the registration server
     elif choice == "2":
         if peer_info.cookie:
-            leave(server_hostname, server_port, peer_info.cookie)
-            peer_info.cookie = None
-            continue_or_exit("Peer is unregistered from the server")
+            response_ok, data = leave(server_hostname, server_port, peer_info.cookie)
+            if response_ok:
+                peer_info.cookie = None
+                continue_or_exit("Peer is deregistered from the server")
+            else:
+                continue_or_exit("Peer could not be deregistered. Server says : %s" % data)
         else:
             continue_or_exit("Peer is not registered with the server")
 
     # Query for peers
     elif choice == "3":
         if peer_info.cookie:
-            peer_info.peers = p_query(server_hostname, server_port, peer_info.cookie)
-            continue_or_exit("Peer list retrieved from the registration server\n%s" % str(peer_info.peers))
+            response_ok, data = p_query(server_hostname, server_port, peer_info.cookie)
+            if response_ok:
+                peer_info.peers = data
+                continue_or_exit("Peer list retrieved from the registration server\n%s" % str(data))
+            else:
+                continue_or_exit("Peer list could not be retrieved. Server says : %s" % data)
         else:
             continue_or_exit("Peer is not registered with the server")
 
     # Send keep-alive signal to registration server
     elif choice == "4":
         if peer_info.cookie:
-            keep_alive(server_hostname, server_port, peer_info.cookie)
-            continue_or_exit("Keep alive signal sent successfully to the server")
+            response_ok, data = keep_alive(server_hostname, server_port, peer_info.cookie)
+            if response_ok:
+                continue_or_exit("TTL updated on server successfully")
+            else:
+                continue_or_exit("TTL could not be updated on server. Server says : %s" % data)
         else:
             continue_or_exit("Peer is not registered with the server")
 
@@ -110,18 +123,29 @@ def flow_handler(peer_info, config, choice):
     elif choice == "7":
         continue_or_exit(peer_info.current_state())
     elif choice == "0":
-        commons.Logging.exit("Bye!")
+        utils.Logging.exit("Bye!")
     else:
         continue_or_exit("Incorrect choice")
+
+
+def continue_or_exit(message):
+    utils.Logging.info(message)
+    try:
+        utils.Logging.info("\nPress any key to go back to the menu. Press Control+C to exit.")
+        raw_input()
+        system('clear')
+    except KeyboardInterrupt:
+        utils.Logging.info("Client shutting down")
+        exit(0)
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--config", help="Path to the config file", type=str, required=True)
 parser.add_argument("-i", "--id", help="Unique id for the peer as used in config", type=str, required=True)
-parser.add_argument("-d", "--debug", help="Enter debug mode", type=bool, default=False)
+parser.add_argument("-d", "--debug", help="Enter debug mode", action="store_true", default=False)
 args = parser.parse_args()
 
 CLIENT_UID = args.id
-commons.Logging.debug_mode = args.debug
+utils.Logging.debug_mode = args.debug
 if __name__ == "__main__":
     main()
