@@ -1,4 +1,4 @@
-from rs_commands import *
+from commands import *
 import argparse
 import utils
 
@@ -26,7 +26,7 @@ def process_request(head, request):
     utils.Logging.debug("Entering rserver.process_request")
     if request.command == "Register":
         if "port" in request.data:
-            head, peer_registered = register(head, request.hostname, request.data["port"])
+            head, peer_registered = handle_registeration(head, request.hostname, request.data["port"])
             if peer_registered:
                 data = {"cookie": head.peer.cookie}
                 status = "200"
@@ -39,7 +39,7 @@ def process_request(head, request):
 
     elif request.command == "Leave":
         if "cookie" in request.data:
-            head, peer_ejected = leave(head, request.data["cookie"])
+            head, peer_ejected = handle_leaving(head, request.data["cookie"])
             data = {}
             if peer_ejected:
                 status = "201"
@@ -51,7 +51,7 @@ def process_request(head, request):
 
     elif request.command == "PQuery":
         if "cookie" in request.data:
-            data = p_query(head, request.data["cookie"])
+            data = handle_peer_query(head, request.data["cookie"])
             status = "200"
         else:
             data = {"message": "Received PQuery request without cookie field"}
@@ -59,7 +59,7 @@ def process_request(head, request):
 
     elif request.command == "KeepAlive":
         if "cookie" in request.data:
-            ttl_updated = keep_alive(head, request.data["cookie"])
+            ttl_updated = handle_keep_alive(head, request.data["cookie"])
             data = {}
             if ttl_updated:
                 status = "201"

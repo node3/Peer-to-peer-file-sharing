@@ -3,8 +3,8 @@ import utils
 
 
 # Register a new peer into the server. Creates a new node and adds it to the linked list.
-def register(head, hostname, port):
-    utils.Logging.debug("Entering rserver.register")
+def handle_registeration(head, hostname, port):
+    utils.Logging.debug("Entering rserver.handle_registeration")
     new_peer = records.PeerRecord(hostname, port)
     ptr = head
     peer_already_registered = False
@@ -20,13 +20,13 @@ def register(head, hostname, port):
         peer_registered = True
     else:
         peer_registered = False
-    utils.Logging.debug("Exiting rserver.register")
+    utils.Logging.debug("Exiting rserver.handle_registeration")
     return head, peer_registered
 
 
-# Leave removes a peer from the linked list
-def leave(head, cookie):
-    utils.Logging.debug("Entering rserver.leave")
+# Removes a peer from the linked list
+def handle_leaving(head, cookie):
+    utils.Logging.debug("Entering rserver.handle_leaving")
     prev = None
     ptr = head
     peer_ejected = False
@@ -42,13 +42,13 @@ def leave(head, cookie):
             break
         else:
             ptr = ptr.nxt
-    utils.Logging.debug("Exiting rserver.leave")
+    utils.Logging.debug("Exiting rserver.handle_leaving")
     return head, peer_ejected
 
 
 # Query peers from the server
-def p_query(head, cookie):
-    utils.Logging.debug("Entering rserver.p_query")
+def handle_peer_query(head, cookie):
+    utils.Logging.debug("Entering rserver.handle_peer_query")
     ptr = head
     data = {"peers": []}
     while ptr:
@@ -59,13 +59,13 @@ def p_query(head, cookie):
                     }
             data["peers"].append(peer)
         ptr = ptr.nxt
-    utils.Logging.debug("Exiting rserver.p_query")
+    utils.Logging.debug("Exiting rserver.handle_peer_query")
     return data
 
 
-# Register a new peer into the server
-def keep_alive(head, cookie):
-    utils.Logging.debug("Entering rserver.keep_alive")
+# Top up the TTL for a peer
+def handle_keep_alive(head, cookie):
+    utils.Logging.debug("Entering rserver.handle_keep_alive")
     ttl_updated = False
     ptr = head
     while ptr:
@@ -75,5 +75,5 @@ def keep_alive(head, cookie):
             break
         else:
             ptr = ptr.nxt
-    utils.Logging.debug("Exiting rserver.keep_alive")
+    utils.Logging.debug("Exiting rserver.handle_keep_alive")
     return ttl_updated

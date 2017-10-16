@@ -1,5 +1,4 @@
-from rs_commands import *
-from peer_commands import *
+from commands import *
 import records
 from os import system
 import argparse
@@ -43,7 +42,7 @@ def flow_handler(peer_info, config, choice):
         if peer_info.cookie:
             continue_or_exit("Peer is already registered with the server with id %s" % peer_info.cookie)
         else:
-            response_ok, data = register(server_hostname, server_port, config["peer"][CLIENT_UID]["port"])
+            response_ok, data = register_request(server_hostname, server_port, config["peer"][CLIENT_UID]["port"])
             if response_ok:
                 peer_info.cookie = data
                 continue_or_exit("Registered with the server with id %s" % peer_info.cookie)
@@ -53,7 +52,7 @@ def flow_handler(peer_info, config, choice):
     # Leave the registration server
     elif choice == "2":
         if peer_info.cookie:
-            response_ok, data = leave(server_hostname, server_port, peer_info.cookie)
+            response_ok, data = leave_request(server_hostname, server_port, peer_info.cookie)
             if response_ok:
                 peer_info.cookie = None
                 continue_or_exit("Peer is deregistered from the server")
@@ -65,7 +64,7 @@ def flow_handler(peer_info, config, choice):
     # Query for peers
     elif choice == "3":
         if peer_info.cookie:
-            response_ok, data = p_query(server_hostname, server_port, peer_info.cookie)
+            response_ok, data = peer_query_request(server_hostname, server_port, peer_info.cookie)
             if response_ok:
                 peer_info.peers = data
                 continue_or_exit("Peer list retrieved from the registration server\n%s" % str(data))
@@ -77,7 +76,7 @@ def flow_handler(peer_info, config, choice):
     # Send keep-alive signal to registration server
     elif choice == "4":
         if peer_info.cookie:
-            response_ok, data = keep_alive(server_hostname, server_port, peer_info.cookie)
+            response_ok, data = keep_alive_request(server_hostname, server_port, peer_info.cookie)
             if response_ok:
                 continue_or_exit("TTL updated on server successfully")
             else:
@@ -88,7 +87,7 @@ def flow_handler(peer_info, config, choice):
     # Query RFCs from peers
     elif choice == "5":
         if peer_info.peers:
-            peer_info.rfc_index_head = rfc_query(peer_info.peers)
+            peer_info.rfc_index_head = rfc_query_request(peer_info.peers)
             continue_or_exit("Received list of RFCs from peers. Updated the local index.")
         else:
             continue_or_exit("Peer list found empty. Query for peers from registration server first")
