@@ -108,19 +108,21 @@ def flow_handler(peer_info, config, choice):
                     found_rfc = True
                     rfc = ptr.rfc
                     for peer in peer_info.peers:
-                        if rfc.hostname == peer.hostname:
+                        if rfc.hostname == peer["hostname"]:
                             found_peer_port = True
-                            rfc_downloaded = get_rfc(peer.hostname, peer.port, rfc_number)
+                            rfc_downloaded = rfc_request(peer["hostname"], peer["port"], rfc_number)
                             break
+                ptr = ptr.nxt
             if not found_rfc:
                 continue_or_exit("Could not find RFC #%s in peer database. Check current state of peer." % rfc_number)
             elif not found_peer_port:
                 continue_or_exit("Could not find the port for RFC #%s in the peers list received from RS"
                                  % rfc_number)
             elif rfc_downloaded:
+                update_rfc_metadata(ptr.rfc.number, ptr.rfc.title)
                 continue_or_exit("RFC downloaded. Check for file %s" % rfc_downloaded)
             else:
-                continue_or_exit("RFC could not be downloaded. peer.get_rfc() must have failed.")
+                continue_or_exit("RFC could not be downloaded. peer.rfc_request() must have failed.")
             # Update self records on downloading an RFC
     elif choice == "7":
         continue_or_exit(peer_info.current_state())

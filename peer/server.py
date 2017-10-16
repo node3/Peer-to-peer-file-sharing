@@ -12,8 +12,7 @@ def main():
         try:
             utils.Logging.info("\n\t--------")
             connection, request = utils.accept_request(sock)
-            response = process_request(request)
-            utils.send_response(connection, response)
+            process_request(connection, request)
         except KeyboardInterrupt:
             utils.Logging.exit("Peer server shutting down")
             break
@@ -21,7 +20,7 @@ def main():
 
 
 # multiplex the request to appropriate command with respective parameters
-def process_request(request):
+def process_request(connection, request):
     utils.Logging.debug("Entering peer.process_request")
     if request.command == "RFCQuery":
         data = handle_rfcs_query()
@@ -30,25 +29,24 @@ def process_request(request):
         else:
             data = {"message": "No RFCs found on %s" % utils.get_ip_address()}
             status = "100"
-
+        utils.send_response(connection, records.P2PResponse(status, data))
     elif request.command == "GetRFC":
-        if "rfc_number" in request.data:
-            rfc = handle_get_rfc(request.data["rfc_number"])
-            data = {}
-            if rfc:
-                status = "200"
+        if "rfc" in request.data:
+            rfc_file = os.path.join(get_rfc_dir(), request.data["rfc"] + ".txt")
+            if os.path.exists(rfc_file):
+                utils.send_rfc(connection, rfc_file)
             else:
                 status = "100"
+                data = {"message": "Requested RFC %s not found" % request.data["rfc"]}
+                utils.send_response(connection, records.P2PResponse(status, data))
         else:
-            data = {"message": "Received GetRFC request without rfc_number field"}
+            data = {"message": "Received GetRFC request without rfc field"}
             status = "300"
+            utils.send_response(connection, records.P2PResponse(status, data))
     else:
         data = {"message": "Request message has an invalid command"}
         status = "300"
-
-    utils.Logging.debug("Exiting peer.process_request")
-    response = records.P2PResponse(status, data)
-    return response
+        utils.send_response(connection, records.P2PResponse(status, data))
 
 
 parser = argparse.ArgumentParser()

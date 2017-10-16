@@ -98,6 +98,38 @@ def send_response(connection, response):
     Logging.debug("Exiting utils.send_response")
 
 
+# Accept rfc
+def accept_rfc(sock, filename):
+    Logging.debug("Entering utils.accept_rfc")
+    f = open(filename, "wb")
+    raw_msg = sock.recv(1024)
+    while raw_msg:
+        response = records.P2PResponse.decode(raw_msg)
+        print "******************received %s" % response.display()
+        f.write(response.data)
+        raw_msg = sock.recv(1024)
+    f.close()
+    sock.close()
+    Logging.debug("Exiting utils.accept_rfc")
+    return
+
+
+# Send rfc
+def send_rfc(connection, filename):
+    Logging.debug("Entering utils.send_rfc")
+    f = open(filename, "rb")
+    msg = f.read(1024)
+    while msg:
+        response = records.P2PResponse("200", msg)
+        print "******************sending %s" % response.display()
+        connection.send(response.encode())
+        msg = f.read(1024)
+    connection.shutdown(socket.SHUT_WR)
+    f.close()
+    Logging.debug("Exiting utils.send_rfc")
+    return
+
+
 # Get local ip address
 def get_ip_address():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
