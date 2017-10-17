@@ -57,8 +57,8 @@ def build_rfc_index():
     if metadata:
         for obj in metadata["rfcs"]:
             rfc = records.RFC(obj["number"], obj["title"], "localhost")
-            rfc_node = records.RFCs(rfc)
-            head = rfc_node.prepend(head)
+            rfc_node = records.Node(rfc)
+            head = rfc_node.insert(head)
     else:
         utils.Logging.info("Metadata empty, no records of local rfcs found")
     utils.Logging.debug("Exiting peer.build_rfc_index")

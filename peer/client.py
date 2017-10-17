@@ -2,6 +2,7 @@ from request_handlers import *
 from commands import *
 import records
 from os import system
+from server import server
 import argparse
 import utils
 
@@ -10,6 +11,7 @@ def main():
     config = utils.load_config(args.config)
     peer_info = records.PeerInfo()
     peer_info.rfc_index_head = build_rfc_index()
+    utils.FuncThread(server, config, args.debug, PEER_ID)
     while True:
         try:
             choice = user_interaction()
@@ -38,7 +40,7 @@ def user_interaction():
 def flow_handler(peer_info, config, choice):
     server_hostname = config["rs"]["hostname"]
     server_port = config["rs"]["port"]
-    params = create_data_field(peer_info.cookie, config["peer"][CLIENT_UID]["port"])
+    params = create_data_field(peer_info.cookie, config["peer"][PEER_ID]["port"])
 
     # Register with server
     if choice == "1":
@@ -133,7 +135,7 @@ parser.add_argument("-i", "--id", help="Unique id for the peer as used in config
 parser.add_argument("-d", "--debug", help="Enter debug mode", action="store_true", default=False)
 args = parser.parse_args()
 
-CLIENT_UID = args.id
+PEER_ID = args.id
 utils.Logging.debug_mode = args.debug
 if __name__ == "__main__":
     main()

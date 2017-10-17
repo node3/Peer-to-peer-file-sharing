@@ -57,8 +57,8 @@ def rfcs_query_request(peers):
         if response.status == "200":
             # Create record for each RFC received
             for rfc in response.data["rfcs"]:
-                rfc_node = records.RFCs(records.RFC(peer["hostname"], rfc["number"], rfc["title"]))
-                rfc_index_head = rfc_node.prepend(rfc_index_head)
+                rfc_node = records.Node(records.RFC(peer["hostname"], rfc["number"], rfc["title"]))
+                rfc_index_head = rfc_node.insert(rfc_index_head)
     utils.Logging.debug("Exiting peer.rfcs_query_request")
     return rfc_index_head
 

@@ -1,4 +1,5 @@
 import json
+import threading
 
 
 # Load config file from the given path as a json
@@ -39,3 +40,14 @@ class Logging:
         print "\n"
         print message
         exit(0)
+
+
+
+class FuncThread(threading.Thread):
+    def __init__(self, target, *args):
+        self._target = target
+        self._args = args
+        threading.Thread.__init__(self)
+
+    def run(self):
+        self._target(*self._args)

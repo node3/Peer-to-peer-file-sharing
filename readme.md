@@ -10,6 +10,8 @@ python client.py -c ../config.json -i 1 -d
 
 ##TODO
 RFC Server should spawn a thread to serve
+
+
 contact rs if rfc not present locally to get list of peers
 1. contact one peer for rfc index,
 2. merge it with its own,

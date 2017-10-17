@@ -1,11 +1,14 @@
 from request_handlers import *
-import argparse
 import utils
 
 
-def main():
-    config = utils.load_config(args.config)
-    sock = utils.listen4clients((utils.get_ip_address(), config["peer"][CLIENT_UID]["port"]))
+def server(config, debug, peer_id):
+    utils.FuncThread(run_server, config, debug, peer_id)
+
+
+def run_server(config, debug, peer_id):
+    utils.Logging.debug_mode = debug
+    sock = utils.listen4clients((utils.get_ip_address(), config["peer"][peer_id]["port"]))
 
     # Serve incoming connections
     while True:
@@ -47,16 +50,4 @@ def process_request(connection, request):
         data = {"message": "Request message has an invalid command"}
         status = "300"
         utils.send_response(connection, records.P2PResponse(status, data))
-
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-c", "--config", help="Path to the config file", type=str, required=True)
-parser.add_argument("-d", "--debug", help="Enter debug mode", action="store_true", default=False)
-parser.add_argument("-i", "--id", help="Unique id for the peer as used in config", type=str, required=True)
-args = parser.parse_args()
-
-CLIENT_UID = args.id
-utils.Logging.debug_mode = args.debug
-if __name__ == "__main__":
-    main()
 
