@@ -1,4 +1,4 @@
-from commands import *
+from request_handlers import *
 import argparse
 import utils
 
@@ -12,7 +12,9 @@ def main():
     while True:
         try:
             utils.Logging.info("\n\t--------")
+            last_time_updated = int(time.time())
             connection, request = utils.accept_request(sock)
+            periodic_ttl_reduction(head, last_time_updated)
             head, response = process_request(head, request)
             utils.send_response(connection, response)
         except KeyboardInterrupt:
@@ -24,53 +26,52 @@ def main():
 # multiplex the request to appropriate command with respective parameters
 def process_request(head, request):
     utils.Logging.debug("Entering rserver.process_request")
+    data = {"message": "Request message has an invalid command"}
+    status = "300"
     if request.command == "Register":
-        if "port" in request.data:
-            head, peer_registered = handle_registeration(head, request.hostname, request.data["port"])
+        if "cookie" in request.data and request.data["cookie"]:
+            handle_keep_alive(head, request.data["cookie"])
+            data = {"message": "TTL updated to 7200 seconds."}
+            status = "201"
+        elif "port" in request.data and request.data["port"]:
+            head, peer_registered = handle_registration(head, request.hostname, request.data["port"])
             if peer_registered:
                 data = {"cookie": head.peer.cookie}
                 status = "200"
-            else:
-                data = {"message": "Peer already registered with same hostname and port"}
-                status = "100"
         else:
-            data = {"message": "Received Leave request without port field"}
+            data = {"message": "Received Register request without port or cookie"}
             status = "300"
 
     elif request.command == "Leave":
-        if "cookie" in request.data:
+        if "cookie" in request.data and request.data["cookie"]:
             head, peer_ejected = handle_leaving(head, request.data["cookie"])
-            data = {}
             if peer_ejected:
+                data = {"message": "Peer unregistered from the server"}
                 status = "201"
             else:
+                data = {"message": "Peer not found"}
                 status = "100"
         else:
-            data = {"message": "Received Leave request without cookie field"}
+            data = {"message": "Received Leave request without cookie"}
             status = "300"
 
     elif request.command == "PQuery":
-        if "cookie" in request.data:
+        if "cookie" in request.data and request.data["cookie"]:
+            handle_keep_alive(head, request.data["cookie"])
             data = handle_peer_query(head, request.data["cookie"])
             status = "200"
         else:
-            data = {"message": "Received PQuery request without cookie field"}
+            data = {"message": "Received PQuery request without cookie"}
             status = "300"
 
     elif request.command == "KeepAlive":
-        if "cookie" in request.data:
-            ttl_updated = handle_keep_alive(head, request.data["cookie"])
-            data = {}
-            if ttl_updated:
-                status = "201"
-            else:
-                status = "100"
+        if "cookie" in request.data and request.data["cookie"]:
+            handle_keep_alive(head, request.data["cookie"])
+            data = {"message": "TTL updated to 7200 seconds."}
+            status = "201"
         else:
-            data = {"message": "Received KeepAlive request without cookie field"}
+            data = {"message": "Received KeepAlive request without cookie"}
             status = "300"
-    else:
-        data = {"message": "Request message has an invalid command"}
-        status = "300"
 
     utils.Logging.debug("Exiting rserver.process_request")
     response = records.P2PResponse(status, data)

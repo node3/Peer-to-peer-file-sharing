@@ -1,7 +1,7 @@
 import socket
 import records
 from commons import *
-import time
+
 
 # Create a connection object from client to server
 def connect2server(hostname, port):
@@ -121,14 +121,13 @@ def accept_rfc(sock, filename):
 def send_rfc(connection, filename):
     Logging.debug("Entering utils.send_rfc")
     f = open(filename, "rb")
-    msg = f.read(256)
+    msg = f.read(512)
     try:
         while msg:
             response = records.P2PResponse("200", msg)
             print "******************sending %s" % response.display()
             connection.sendall(response.encode())
-            msg = f.read(256)
-            time.sleep(0.009)
+            msg = f.read(512)
         connection.shutdown(socket.SHUT_WR)
         f.close()
         connection.close()

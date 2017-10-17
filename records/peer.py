@@ -1,7 +1,6 @@
 # PeerRecord holds all the attributes associated with a peer
 class PeerRecord:
     cookie_count = 1
-    ttl_decrement_value = 5
 
     def __init__(self, hostname, port):
         self.hostname = hostname
@@ -15,13 +14,17 @@ class PeerRecord:
 
     def initialize_ttl(self):
         self.ttl = 7200
+        self.active = True
+
+    def is_active(self):
+        return self.active
 
     def mark_inactive(self):
         self.active = False
 
-    def decrement_ttl(self):
+    def decrement_ttl(self, decrement_value):
         if self.ttl > 0:
-            self.ttl = self.ttl - PeerRecord.ttl_decrement_value
+            self.ttl = self.ttl - decrement_value
             if self.ttl <= 0:
                 self.ttl = 0
                 self.mark_inactive()
@@ -38,11 +41,6 @@ class Peers:
     def __init__(self, peer):
         self.peer = peer
         self.nxt = None
-
-    def decrement_all_ttl(self):
-        self.peer.decrement_ttl()
-        if self.nxt:
-            self.nxt.decrement_all_ttl()
 
 
 # PeerInfo should be used to store the peer's current state

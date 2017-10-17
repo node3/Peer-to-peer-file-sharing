@@ -1,4 +1,4 @@
-from commands import *
+from request_handlers import *
 import argparse
 import utils
 

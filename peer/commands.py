@@ -1,112 +1,70 @@
-import pickle
-from commons import *
+import os
+import utils
+import records
+import json
 
 
-# Register a client with the server
-def register_request(server_ip, server_port, client_port):
-    utils.Logging.debug("Entering peer.register_request")
-    sock = utils.send_request(server_ip, server_port, "Register", {"port": client_port})
-    response = utils.accept_response(sock)
-    if response.status == "200":
-        response_ok = True
-        data = response.data["cookie"]
-    else:
-        response_ok = False
-        data = response.data["message"]
-    utils.Logging.debug("Exiting peer.register_request")
-    return response_ok, data
+def get_rfc_dir():
+    rfc_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rfc")
+    if not os.path.exists(rfc_dir):
+        os.makedirs(rfc_dir)
+    return rfc_dir
 
 
-# De-registeration a client from the server
-def leave_request(server_ip, server_port, cookie):
-    utils.Logging.debug("Entering peer.leave_request")
-    data = {"cookie": cookie}
-    sock = utils.send_request(server_ip, server_port, "Leave", data)
-    response = utils.accept_response(sock)
-    if response.status == "201":
-        response_ok = True
-        data = None
-    else:
-        response_ok = False
-        data = response.data["message"]
-    utils.Logging.debug("Exiting peer.leave_request")
-    return response_ok, data
-
-
-# Query for peers
-def peer_query_request(server_ip, server_port, cookie):
-    utils.Logging.debug("Entering peer.peer_query_request")
-    sock = utils.send_request(server_ip, server_port, "PQuery", {"cookie": cookie})
-    response = utils.accept_response(sock)
-    if response.status == "200":
-        response_ok = True
-        data = response.data["peers"]
-    else:
-        response_ok = False
-        data = response.data["message"]
-    utils.Logging.debug("Exiting peer.peer_query_request")
-    return response_ok, data
-
-
-# Send keep alive signal
-def keep_alive_request(server_ip, server_port, cookie):
-    utils.Logging.debug("Entering peer.keep_alive_request")
-    sock = utils.send_request(server_ip, server_port, "KeepAlive", {"cookie": cookie})
-    response = utils.accept_response(sock)
-    if response.status == "201":
-        response_ok = True
-        data = None
-    else:
-        response_ok = False
-        data = response.data["message"]
-    utils.Logging.debug("Exiting peer.keep_alive_request")
-    return response_ok, data
-
-
-# Query a peer for RFCs
-def rfcs_query_request(peers):
-    utils.Logging.debug("Entering peer.rfcs_query_request")
-    rfc_index_head = None
-    # Request all peers for RFCs
-    for peer in peers:
-        sock = utils.send_request(peer["hostname"], peer["port"], "RFCQuery", {})
-        response = utils.accept_response(sock)
-        if response.status == "200":
-            # Create record for each RFC received
-            for rfc in response.data["rfcs"]:
-                rfc_node = records.RFCs(records.RFC(peer["hostname"], rfc["number"], rfc["title"]))
-                rfc_index_head = rfc_node.prepend(rfc_index_head)
-    utils.Logging.debug("Exiting peer.rfcs_query_request")
-    return rfc_index_head
-
-
-# Get RFC from a peer
-def rfc_request(peer_ip, peer_port, rfc_id, rfc_title):
-    utils.Logging.debug("Entering peer.rfc_request")
-    sock = utils.send_request(peer_ip, peer_port, "GetRFC", {"rfc": rfc_id})
-    rfc_path = os.path.join(get_rfc_dir(), rfc_id + ".txt")
-    utils.accept_rfc(sock, rfc_path)
-    update_rfc_metadata(rfc_id, rfc_title)
-    utils.Logging.debug("Exiting peer.rfc_request")
-    return rfc_path
-
-
-# Handle an rfc query request
-def handle_rfcs_query():
-    utils.Logging.debug("Entering peer.handle_rfcs_query")
-    data = read_rfc_metadata()
-    utils.Logging.debug("Exiting peer.handle_rfcs_query")
+def read_rfc_metadata():
+    utils.Logging.debug("Entering peer.read_rfc_metadata")
+    metadata_file = os.path.join(get_rfc_dir(), "metadata.json")
+    # Load metadata.json
+    data = None
+    try:
+        with open(metadata_file) as f:
+            try:
+                data = json.load(f)
+            except ValueError as err:
+                utils.Logging.info("Could not load %s. %s" % (metadata_file, err))
+    except OSError:
+        utils.Logging.info("No %s found" % metadata_file)
+    utils.Logging.debug("Exiting peer.read_rfc_metadata")
     return data
 
 
-# Handle an rfc query request
-def handle_get_rfc(rfc_file):
-    f = open(rfc_file, "rb")
-    data = f.read(1024)
-    while data:
-        yield data
-    f.close()
+def update_rfc_metadata(number, title):
+    utils.Logging.debug("Entering peer.update_rfc_metadata")
+    new_data = {"number".encode('utf-8'): str(number), "title".encode('utf-8'): title}
+    metadata_file = os.path.join(get_rfc_dir(), "metadata.json")
+    try:
+        metadata = read_rfc_metadata()
+        if metadata and isinstance(metadata, dict):
+            metadata["rfcs"].append(new_data)
+        else:
+            metadata = {"rfcs": []}
+            metadata["rfcs"].append(new_data)
+        f = open(metadata_file, "w")
+        json.dump(metadata, f)
+        f.close()
+        updated = True
+    except BaseException as err:
+        updated = False
+        utils.Logging.debug(err)
+    utils.Logging.debug("Exiting peer.update_rfc_metadata")
+    return updated
 
 
+def build_rfc_index():
+    utils.Logging.debug("Entering peer.build_rfc_index")
+    metadata = read_rfc_metadata()
+    head = None
+    if metadata:
+        for obj in metadata["rfcs"]:
+            rfc = records.RFC(obj["number"], obj["title"], "localhost")
+            rfc_node = records.RFCs(rfc)
+            head = rfc_node.prepend(head)
+    else:
+        utils.Logging.info("Metadata empty, no records of local rfcs found")
+    utils.Logging.debug("Exiting peer.build_rfc_index")
+    return head
 
+
+def create_data_field(cookie, port):
+    return {"cookie": cookie, "port": port}
 

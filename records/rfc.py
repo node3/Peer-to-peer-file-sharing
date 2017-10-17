@@ -21,10 +21,7 @@ class RFCs:
         self.rfc = rfc
         self.nxt = None
 
-    def decrement_all_ttl(self):
-        self.rfc.decrement_ttl()
-        if self.nxt:
-            self.nxt.decrement_all_ttl()
+    def search(self, rfc_number):
 
     def prepend(self, head):
         self.nxt = head
