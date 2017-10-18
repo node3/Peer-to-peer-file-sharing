@@ -4,6 +4,7 @@ import records
 from server import server
 import argparse
 import utils
+from os import system
 
 
 def main():
@@ -18,8 +19,8 @@ def main():
         try:
             choice = user_interaction()
             periodic_ttl_reduction(peer_info.rfc_index_head, last_time_updated)
-            flow_handler(peer_info, config, choice)
             last_time_updated = int(time.time())
+            flow_handler(peer_info, config, choice)
         except KeyboardInterrupt:
             utils.Logging.exit("Client shutting down")
 
@@ -50,63 +51,75 @@ def flow_handler(peer_info, config, choice):
         status, data = register_request(server_hostname, server_port, params)
         if status == "200":
             peer_info.cookie = data
-            continue_or_exit("Peer registered with the server with id %s" % peer_info.cookie)
+            print_and_continue("Peer registered with the server with id %s" % peer_info.cookie)
         else:
-            continue_or_exit(data)
+            print_and_continue(data)
 
     # Leave the registration server
     elif choice == "2":
             status, data = leave_request(server_hostname, server_port, params)
             if status == "201":
                 peer_info.cookie = None
-            continue_or_exit(data)
+            print_and_continue(data)
 
     # Query for peers
     elif choice == "3":
         status, data = peer_query_request(server_hostname, server_port, params)
         if status == "200":
-            peer_info.peers = data
-            continue_or_exit("Peer list retrieved from the registration server\n%s" % str(data))
+            peer_info.add_new_peers(data)
+            print_and_continue("Peer list retrieved from the registration server :\n%s" % str(data))
         else:
-            continue_or_exit(data)
+            print_and_continue(data)
 
     # Send keep-alive signal to registration server
     elif choice == "4":
         status, data = keep_alive_request(server_hostname, server_port, params)
-        continue_or_exit(data)
+        print_and_continue(data)
 
     # Get RFC
     elif choice == "5":
         if peer_info.peers:
             rfc_number = raw_input("Enter the rfc # to be downloaded : ")
-            print "RFC number type %s" % type(rfc_number)
-            local_rfc = check_rfc_metadata(rfc_number)
-            if local_rfc:
-                continue_or_exit("RFC locally available at %s" % local_rfc)
+            if rfc_number == "":
+                print_and_continue("Invalid input! Please ensure that a you insert a valid number.")
             else:
-                downloaded_rfc = get_rfc_from_peers(peer_info, rfc_number)
-                if downloaded_rfc:
-                    continue_or_exit("RFC now available at %s" % downloaded_rfc)
+                local_rfc = check_rfc_metadata(rfc_number)
+                if local_rfc:
+                    print_and_continue("RFC locally available at %s" % local_rfc)
                 else:
-                    continue_or_exit("OOPS! RFC %s not found on any peer" % rfc_number)
+                    downloaded_rfc = get_rfc_from_peers(peer_info, rfc_number)
+                    if downloaded_rfc:
+                        print_and_continue("RFC now available at %s" % downloaded_rfc)
+                    else:
+                        print_and_continue("OOPS! RFC %s not found on any peer" % rfc_number)
         else:
-            continue_or_exit("Peer list found empty. Query for peers from registration server first")
+            print_and_continue("Peer list found empty. Query for peers from registration server first")
+
+    # Display current state of the peer
     elif choice == "7":
-        continue_or_exit(peer_info.current_state())
+        print_and_continue(records.display_peer_state(peer_info))
+
     elif choice == "0":
         utils.Logging.exit("Bye!")
+
     else:
-        continue_or_exit("Incorrect choice")
+        print_and_continue("Incorrect choice")
 
 
-def continue_or_exit(message):
+# def continue_or_exit(message):
+#     utils.Logging.info(message)
+#     try:
+#         utils.Logging.info("\nPress any key to go back to the menu. Press Control+C to exit.")
+#         raw_input()
+#     except KeyboardInterrupt:
+#         utils.Logging.info("Client shutting down")
+#         exit(0)
+
+
+def print_and_continue(message):
     utils.Logging.info(message)
-    try:
-        utils.Logging.info("\nPress any key to go back to the menu. Press Control+C to exit.")
-        raw_input()
-    except KeyboardInterrupt:
-        utils.Logging.info("Client shutting down")
-        exit(0)
+    raw_input("\n\n\t\tPress any key to go back to the interactive menu .... ")
+    system('clear')
 
 
 parser = argparse.ArgumentParser()

@@ -19,7 +19,7 @@ class RFC:
             return True
 
     def display(self):
-        return "%-15s %-5s %-40s %-5s" % (self.hostname, self.number, self.title, self.ttl)
+        return "%-25s %-5s %-5s %-40s" % (self.hostname, self.ttl, self.number, self.title)
 
 
 # Node class represents the node in the linked list. Instantiate this class to create nodes
@@ -38,7 +38,6 @@ class Node:
         ptr = self
         while ptr:
             if ptr.rfc.number == rfc_number and ptr.rfc.is_active():
-                print "RFC found and active"
                 return ptr.rfc
             ptr = ptr.nxt
         return None
@@ -96,11 +95,11 @@ def decode_rfc_list(hostname, hash_list):
 
 def display_rfc_list(head):
     node = head
-    table = "\n%-15s %-5s %-40s %-5s" % ("Hostname", "RFC#", "Title", "TTL")
+    table = "\n\t%-25s %-5s %-5s %-40s" % ("Hostname", "TTL", "RFC#", "Title")
     if node:
         while node:
-            table += "\n%-15s %-5s %-40s %-5s" % (node.rfc.hostname, node.rfc.number, node.rfc.title, node.rfc.ttl)
+            table += "\n\t%-25s %-5s %-5s %-40s" % (node.rfc.hostname, node.rfc.ttl, node.rfc.number, node.rfc.title)
             node = node.nxt
     else:
-        table += "\n%-15s %-5s %-40s %-5s" % ("None", "None", "None", "None")
+        table += "\n\t%-25s %-5s %-5s %-40s" % ("None", "None", "None", "None")
     return table

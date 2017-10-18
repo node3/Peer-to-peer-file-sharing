@@ -1,3 +1,6 @@
+from rfc import display_rfc_list
+
+
 # PeerRecord holds all the attributes associated with a peer
 class PeerRecord:
     cookie_count = 1
@@ -50,20 +53,18 @@ class PeerInfo:
         self.rfc_index_head = None
         self.peers = []
 
-    def current_state(self):
-        message = "\n\tCurrently the peer is aware of the following :" \
-                  "\n\tPeer registration id/cookie : %s" \
-                  "\n\tKnown peers in the swarm: %s" \
-                  "\n\n\t%-16s%-8s%-40s" % (str(self.cookie), str(self.peers), "Hostname", "RFC #", "RFC Title")
+    def add_new_peers(self, peers):
+        peers_to_be_added = []
+        for peer in peers:
+            if peer not in self.peers:
+                peers_to_be_added.append(peer)
+        self.peers.extend(peers_to_be_added)
 
-        message += "\n\t" + '-'*64
-        ptr = self.rfc_index_head
-        empty = True
-        while ptr:
-            empty = False
-            message += "\n\t%-16s%-8s%-40s" % (ptr.rfc.hostname, ptr.rfc.number, ptr.rfc.title)
-            ptr = ptr.nxt
-        if empty:
-            message += "\n\t%-16s%-8s%-40s" % ("None", "None", "None")
 
-        return message
+def display_peer_state(peer_info):
+    message = "\n\tCurrently the peer is aware of the following :" \
+              "\n\tPeer registration id/cookie : %s" \
+              "\n\tList of Known peers in the swarm: %s" \
+              "\n\n\tLocal rfc index contains following information: " % (peer_info.cookie, peer_info.peers)
+    message += display_rfc_list(peer_info.rfc_index_head)
+    return message

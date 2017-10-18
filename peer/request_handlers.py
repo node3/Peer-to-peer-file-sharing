@@ -47,7 +47,37 @@ def keep_alive_request(server_ip, server_port, params):
     return response.status, response.data["message"]
 
 
-# Handle an rfc query request
+# Handle get rfc, client side
+def get_rfc_from_peers(peer_info, rfc_number):
+    utils.Logging.debug("Entering peer.get_rfc_from_peers")
+    rfc_path = None
+    utils.Logging.info("Displaying local rfc list before querying any peers :%s\n"
+                       % records.display_rfc_list(peer_info.rfc_index_head))
+
+    # Query all peers for rfc
+    for peer in peer_info.peers:
+
+        # Query a peer for its rfc index head
+        peer_rfc_index_head = get_rfc_index_from_peer(peer["hostname"], peer["port"])
+        if peer_rfc_index_head:
+            utils.Logging.info("Displaying rfc list from (%s, %s) :%s\n"
+                               % (peer["hostname"], peer["port"], records.display_rfc_list(peer_rfc_index_head)))
+            peer_info.rfc_index_head = records.merge(peer_info.rfc_index_head, peer_rfc_index_head)
+            utils.Logging.info("Displaying rfc list on merge :%s\n"
+                               % records.display_rfc_list(peer_info.rfc_index_head))
+
+            # Check if the local rfc indexed combined with peer rfc index contains the rfc required
+            rfc = peer_info.rfc_index_head.find(rfc_number)
+            if rfc:
+                # Download the rfc and update the local index
+                utils.Logging.info("RFC found on (%s, %s)" % (peer["hostname"], peer["port"]))
+                rfc_path = get_rfc_from_peer(peer["hostname"], peer["port"], rfc_number)
+                update_rfc_metadata(rfc.number, rfc.title)
+    utils.Logging.debug("Exiting peer.get_rfc_from_peers")
+    return rfc_path
+
+
+# Handle an rfc index query request, server side
 def handle_rfcs_query(rfc_index_head):
     utils.Logging.debug("Entering peer.handle_rfcs_query")
     node_list = records.encode_rfc_list(rfc_index_head)
@@ -55,7 +85,7 @@ def handle_rfcs_query(rfc_index_head):
     return {"rfcs": node_list}
 
 
-# Handle an rfc query request
+# Handle a get rfc request, server side
 def handle_get_rfc(rfc_file):
     f = open(rfc_file, "rb")
     data = f.read(1024)

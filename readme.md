@@ -9,14 +9,8 @@ python rserver.py -c ../config.json -d
 python client.py -c ../config.json -i 1 -d
 
 ##TODO
-contact rs if rfc not present locally to get list of peers
-1. contact one peer for rfc index,
-2. merge it with its own,
-4. search for the rfc
-4. Download from respective peer
-then repeat one if failed until the list exhausts or rfc found.
-
-
-
-
-create an instrutions file to run the program
+no pickle failure
+print server state before accept request
+Update readme
+move rfc folder into project dir
+add 60 RFCs
