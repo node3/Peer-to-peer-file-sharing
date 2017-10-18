@@ -1,6 +1,7 @@
 import records
 import utils
 from commands import *
+import datetime
 
 
 # Register a new peer into the server. Creates a new node and adds it to the linked list.
@@ -10,6 +11,7 @@ def handle_registration(head, hostname, port):
     if registry_id == 0:
         head = register_peer(head, hostname, port)
         cookie = head.peer.cookie
+        head.peer.last_reg = datetime.datetime.now()
     # This flow is when the peer forgets it cookie and tries to re-register.
     # The server will return its old cookie after recognising it with the hostname and port combination
     else:
@@ -67,6 +69,8 @@ def handle_keep_alive(head, cookie):
     while ptr:
         if ptr.peer.cookie == cookie:
             ptr.peer.initialize_ttl()
+            ptr.peer.last_reg = datetime.datetime.now()
+            ptr.peer.reg_count += 1
             ttl_updated = True
             break
         else:

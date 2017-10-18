@@ -71,14 +71,14 @@ def listen4clients(server_address):
         try:
             sock.bind(server_address)
             sock.listen(1)
-            Logging.info("Server listening on (%s, %s)" % server_address)
+            Logging.info("Server listening on %s" % str(server_address))
             break
         except socket.error as err:
             Logging.info("%s. Retrying..." % err)
             sleep(5)
             timeout -= 5
     if timeout <= 0:
-        Logging.error("Could not bind to (%s, %s) within %d seconds" % (server_address, BIND_TIMEOUT))
+        Logging.error("Could not bind to %s within %d seconds" % (str(server_address), BIND_TIMEOUT))
     else:
         Logging.debug("Exiting utils.listen4clients")
         return sock
@@ -89,7 +89,7 @@ def accept_request(sock):
     Logging.debug("Entering utils.accept_request")
     try:
         connection, client_address = sock.accept()
-        Logging.info("Received connection request from (%s, %s)" % client_address)
+        Logging.info("Received connection request from %s" % str(client_address))
         raw_msg = connection.recv(1024)
     except socket.error as err:
         raise Exception("accept_request failed with error %s" % err)

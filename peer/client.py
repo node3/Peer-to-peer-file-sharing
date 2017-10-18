@@ -97,7 +97,7 @@ def flow_handler(peer_info, config, choice):
 
     # Display current state of the peer
     elif choice == "7":
-        print_and_continue(records.display_peer_state(peer_info))
+        print_and_continue(peer_info.display_peer_state())
 
     elif choice == "0":
         utils.Logging.exit("Bye!")

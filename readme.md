@@ -10,7 +10,6 @@ python client.py -c ../config.json -i 1 -d
 
 ##TODO
 no pickle failure
-print server state before accept request
 Update readme
 move rfc folder into project dir
 add 60 RFCs

@@ -13,7 +13,7 @@ def main():
     # Serve incoming connections
     while True:
         try:
-            utils.Logging.info("\n\t--------")
+            utils.Logging.info(records.display_swarm_table(head))
             connection, request = utils.accept_request(sock)
             periodic_ttl_reduction(head, last_time_updated)
             head, response = process_request(head, request)
