@@ -6,16 +6,18 @@ import utils
 def main():
     config = utils.load_config(args.config)
     head = None
+    # sock = utils.listen4clients((utils.get_ip_address(), config["rs"]["port"]))
     sock = utils.listen4clients((config["rs"]["hostname"], config["rs"]["port"]))
+    last_time_updated = int(time.time())
 
     # Serve incoming connections
     while True:
         try:
             utils.Logging.info("\n\t--------")
-            last_time_updated = int(time.time())
             connection, request = utils.accept_request(sock)
             periodic_ttl_reduction(head, last_time_updated)
             head, response = process_request(head, request)
+            last_time_updated = int(time.time())
             utils.send_response(connection, response)
         except KeyboardInterrupt:
             utils.Logging.exit("Registration server shutting down")

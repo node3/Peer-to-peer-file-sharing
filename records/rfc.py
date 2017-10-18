@@ -7,7 +7,7 @@ class RFC:
         self.ttl = 7200
 
     def decrement_ttl(self, decrement_value):
-        if self.ttl > 0:
+        if self.hostname != "localhost" and self.ttl > 0:
             self.ttl = self.ttl - decrement_value
             if self.ttl <= 0:
                 self.ttl = 0
@@ -24,6 +24,11 @@ class Node:
     def __init__(self, rfc):
         self.rfc = rfc
         self.nxt = None
+
+    def hash(self):
+        return {"number": self.rfc.number,
+                "title": self.rfc.title
+                }
 
     # Find a node in the linked list by rfc number and return the rfc object if found
     def find(self, rfc_number):
@@ -51,8 +56,9 @@ class Node:
 
     # Prepend a node
     def insert(self, node):
-        node.nxt = self
-        return node
+        if node:
+            self.nxt = node
+        return self
 
     # Merge a list with another list
     def merge(self, head):
@@ -77,3 +83,22 @@ class Node:
                 ptr = ptr.nxt
 
         return new_list
+
+
+# This function returns the hashed representation of the linked list
+def encode_list(head):
+    node = head
+    hash_list = []
+    while node:
+        hash_list.append(node.hash())
+        node = node.nxt
+    return hash_list
+
+
+# This function returns a linked list for a given hashed representation
+def decode_list(hostname, hash_list):
+    head = None
+    for rfc in hash_list["rfcs"]:
+        node = Node(RFC(hostname, rfc["number"], rfc["title"]))
+        head = node.insert(head)
+

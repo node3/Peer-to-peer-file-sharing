@@ -1,37 +1,50 @@
 from request_handlers import *
 import utils
+from time import sleep
+from socket import error as socket_error
 
 
-def server(config, debug, peer_id):
-    utils.FuncThread(run_server, config, debug, peer_id)
-
-
-def run_server(config, debug, peer_id):
+# Server maintains a server thread running
+def server(config, peer_info, peer_id, debug):
     utils.Logging.debug_mode = debug
-    sock = utils.listen4clients((utils.get_ip_address(), config["peer"][peer_id]["port"]))
+    utils.Logging.info("Starting a peer server in background.")
+    run_server(config, peer_info, peer_id)
+    utils.Logging.info("Peer server has stopped.")
 
-    # Serve incoming connections
+
+# This is the thread that serves
+def run_server(config, peer_info, peer_id):
+    # Open a socket
+    sock = None
+    while not sock:
+        try:
+            sock = utils.listen4clients((utils.get_ip_address(), config["peer"][peer_id]["port"]))
+        except socket_error as err:
+            utils.Logging.debug("Tried to open a socket. %s. Retrying in 3 seconds." % err)
+            sleep(3)
+
+    utils.Logging.info("Peer server is now running")
+
+    # Serve incoming connections until failure
     while True:
         try:
             utils.Logging.info("\n\t--------")
             connection, request = utils.accept_request(sock)
-            process_request(connection, request)
+            process_request(connection, peer_info, request)
         except KeyboardInterrupt:
-            utils.Logging.exit("Peer server shutting down")
             break
+        except BaseException as err:
+            utils.Logging.info(err)
+
     sock.close()
 
 
 # multiplex the request to appropriate command with respective parameters
-def process_request(connection, request):
+def process_request(connection, peer_info, request):
     utils.Logging.debug("Entering peer.process_request")
     if request.command == "RFCQuery":
-        data = handle_rfcs_query()
-        if data:
-            status = "200"
-        else:
-            data = {"message": "No RFCs found on %s" % utils.get_ip_address()}
-            status = "100"
+        data = handle_rfcs_query(peer_info.rfc_index_head)
+        status = "200"
         utils.send_response(connection, records.P2PResponse(status, data))
     elif request.command == "GetRFC":
         if "rfc" in request.data:

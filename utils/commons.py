@@ -42,12 +42,14 @@ class Logging:
         exit(0)
 
 
-
 class FuncThread(threading.Thread):
+    thread_number = 1
+
     def __init__(self, target, *args):
         self._target = target
         self._args = args
         threading.Thread.__init__(self)
+        FuncThread.thread_number += 1
 
     def run(self):
         self._target(*self._args)

@@ -1,7 +1,6 @@
 from request_handlers import *
 from commands import *
 import records
-from os import system
 from server import server
 import argparse
 import utils
@@ -11,25 +10,29 @@ def main():
     config = utils.load_config(args.config)
     peer_info = records.PeerInfo()
     peer_info.rfc_index_head = build_rfc_index()
-    utils.FuncThread(server, config, args.debug, PEER_ID)
+    t = utils.FuncThread(server, config, peer_info, PEER_ID, args.debug)
+    t.setDaemon(True)
+    t.start()
+    last_time_updated = int(time.time())
     while True:
         try:
             choice = user_interaction()
+            periodic_ttl_reduction(peer_info.rfc_index_head, last_time_updated)
             flow_handler(peer_info, config, choice)
+            last_time_updated = int(time.time())
         except KeyboardInterrupt:
             utils.Logging.exit("Client shutting down")
 
 
 def user_interaction():
-    system('clear')
+
     guide = "\n\t\t\t\t*** Welcome to P2P client ***\n" \
             "\n\n\t\tSelect an action by pressing its serial number" \
             "\n\t\t(1) Register with server" \
             "\n\t\t(2) Leave the registration server" \
             "\n\t\t(3) Query for peers" \
             "\n\t\t(4) Send keep-alive signal to registration server" \
-            "\n\t\t(5) Query RFCs from peers" \
-            "\n\t\t(6) Get RFC from a peer" \
+            "\n\t\t(5) Get an RFC" \
             "\n\t\t(7) View current state of the peer" \
             "\n\t\t(0) Exit"
     utils.Logging.info(guide)
@@ -72,44 +75,21 @@ def flow_handler(peer_info, config, choice):
         status, data = keep_alive_request(server_hostname, server_port, params)
         continue_or_exit(data)
 
-
-    # Query RFCs from peers
+    # Get RFC
     elif choice == "5":
-        peer_info.peers = [{"hostname": "192.168.0.15", "port": 1281}]
         if peer_info.peers:
-            peer_info.rfc_index_head = rfcs_query_request(peer_info.peers)
-            continue_or_exit("Updated the local index")
+            rfc_number = raw_input("Enter the rfc # to be downloaded : ")
+            local_rfc = check_rfc_metadata(rfc_number)
+            if local_rfc:
+                continue_or_exit("RFC locally available at %s" % local_rfc)
+            else:
+                downloaded_rfc = get_rfc_from_peers(peer_info, rfc_number)
+                if downloaded_rfc:
+                    continue_or_exit("RFC now available at %s" % downloaded_rfc)
+                else:
+                    continue_or_exit("OOPS! RFC %s not found on any peer" % rfc_number)
         else:
             continue_or_exit("Peer list found empty. Query for peers from registration server first")
-
-    # Get RFC from a peer
-    elif choice == "6":
-        if peer_info.peers:
-            rfc_number = raw_input("Enter the rfc # to be downloaded")
-            ptr = peer_info.rfc_index_head
-            found_rfc = False
-            found_peer_port = False
-            rfc_downloaded = False
-            while ptr:
-                if ptr.rfc.number == rfc_number:
-                    found_rfc = True
-                    rfc = ptr.rfc
-                    for peer in peer_info.peers:
-                        if rfc.hostname == peer["hostname"]:
-                            found_peer_port = True
-                            rfc_downloaded = rfc_request(peer["hostname"], peer["port"], rfc_number, ptr.rfc.title)
-                            break
-                ptr = ptr.nxt
-            if not found_rfc:
-                continue_or_exit("Could not find RFC #%s in peer database. Check current state of peer." % rfc_number)
-            elif not found_peer_port:
-                continue_or_exit("Could not find the port for RFC #%s in the peers list received from RS"
-                                 % rfc_number)
-            elif rfc_downloaded:
-                continue_or_exit("RFC downloaded. Check for file %s" % rfc_downloaded)
-            else:
-                continue_or_exit("RFC could not be downloaded. peer.rfc_request() must have failed.")
-            # Update self records on downloading an RFC
     elif choice == "7":
         continue_or_exit(peer_info.current_state())
     elif choice == "0":
@@ -123,7 +103,6 @@ def continue_or_exit(message):
     try:
         utils.Logging.info("\nPress any key to go back to the menu. Press Control+C to exit.")
         raw_input()
-        system('clear')
     except KeyboardInterrupt:
         utils.Logging.info("Client shutting down")
         exit(0)

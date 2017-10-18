@@ -1,18 +1,23 @@
 import socket
 import records
 from commons import *
+from time import sleep
+
+CONNECT_TIMEOUT = 5
+BIND_TIMEOUT = 30
 
 
 # Create a connection object from client to server
 def connect2server(hostname, port):
     Logging.debug("Entering utils.connect2server")
+    socket.setdefaulttimeout(CONNECT_TIMEOUT)
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_address = (hostname, port)
 
     try:
         sock.connect(server_address)
     except socket.error as err:
-        Logging.error("Connect to server (%s, %s) failed with error %s" % (hostname, port, err))
+        Logging.error("Connect to server (%s, %s) failed due to %s" % (hostname, port, err))
 
     Logging.info("Connected to server (%s, %s)" % server_address)
     Logging.debug("Exiting utils.connect2server")
@@ -61,14 +66,22 @@ def accept_response(sock):
 def listen4clients(server_address):
     Logging.debug("Entering utils.listen4clients")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        sock.bind(server_address)
-        sock.listen(1)
-        Logging.info("Server listening on (%s, %s)" % server_address)
-    except socket.error as err:
-        raise Exception("listen4clients failed with error \n%s\n Possibly the port is busy." % err)
-    Logging.debug("Exiting utils.listen4clients")
-    return sock
+    timeout = BIND_TIMEOUT
+    while timeout > 0:
+        try:
+            sock.bind(server_address)
+            sock.listen(1)
+            Logging.info("Server listening on (%s, %s)" % server_address)
+            break
+        except socket.error as err:
+            Logging.info("%s. Retrying..." % err)
+            sleep(5)
+            timeout -= 5
+    if timeout < 0:
+        Logging.error("Could not bind to (%s, %s) within %d seconds" % (server_address, BIND_TIMEOUT))
+    else:
+        Logging.debug("Exiting utils.listen4clients")
+        return sock
 
 
 # Accept request messages from a client
@@ -106,15 +119,17 @@ def accept_rfc(sock, filename):
     try:
         while raw_msg:
             response = records.P2PResponse.decode(raw_msg)
-            print "******************received %s" % response.display()
+            Logging.info(response.display())
             f.write(response.data)
             raw_msg = sock.recv(4096)
         f.close()
         sock.close()
+        downloaded = True
     except socket.error as err:
         Logging.info("Could not download the complete rfc. %s" % err)
+        downloaded = False
     Logging.debug("Exiting utils.accept_rfc")
-    return
+    return downloaded
 
 
 # Send rfc
@@ -125,7 +140,7 @@ def send_rfc(connection, filename):
     try:
         while msg:
             response = records.P2PResponse("200", msg)
-            print "******************sending %s" % response.display()
+            Logging.info(response.display())
             connection.sendall(response.encode())
             msg = f.read(512)
         connection.shutdown(socket.SHUT_WR)
@@ -139,8 +154,9 @@ def send_rfc(connection, filename):
 
 # Get local ip address
 def get_ip_address():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    ip = s.getsockname()[0]
-    s.close()
-    return ip
+    return "localhost"
+    # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # s.connect(("8.8.8.8", 80))
+    # ip = s.getsockname()[0]
+    # s.close()
+    # return ip

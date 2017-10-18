@@ -25,7 +25,7 @@ def periodic_ttl_reduction(head, last_time_updated):
     if head:
         current_time = int(time.time())
         decrement_value = current_time - last_time_updated
-        utils.Logging.debug("TTL reduction by %s" % decrement_value)
+        utils.Logging.info("TTL reduction by %s" % decrement_value)
         ptr = head
         while ptr:
             ptr.peer.decrement_ttl(decrement_value)

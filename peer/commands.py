@@ -2,6 +2,7 @@ import os
 import utils
 import records
 import json
+import time
 
 
 def get_rfc_dir():
@@ -11,26 +12,31 @@ def get_rfc_dir():
     return rfc_dir
 
 
+def get_rfc_path(rfc_number):
+    return os.path.join(get_rfc_dir(), rfc_number + ".txt")
+
+
 def read_rfc_metadata():
     utils.Logging.debug("Entering peer.read_rfc_metadata")
     metadata_file = os.path.join(get_rfc_dir(), "metadata.json")
     # Load metadata.json
-    data = None
+    metadata = None
     try:
-        with open(metadata_file) as f:
             try:
-                data = json.load(f)
+                f = open(metadata_file, "r")
+                metadata = json.load(f)
+                f.close()
             except ValueError as err:
                 utils.Logging.info("Could not load %s. %s" % (metadata_file, err))
-    except OSError:
+    except IOError:
         utils.Logging.info("No %s found" % metadata_file)
     utils.Logging.debug("Exiting peer.read_rfc_metadata")
-    return data
+    return metadata
 
 
 def update_rfc_metadata(number, title):
     utils.Logging.debug("Entering peer.update_rfc_metadata")
-    new_data = {"number".encode('utf-8'): str(number), "title".encode('utf-8'): title}
+    new_data = {"number": str(number), "title": title}
     metadata_file = os.path.join(get_rfc_dir(), "metadata.json")
     try:
         metadata = read_rfc_metadata()
@@ -68,3 +74,60 @@ def build_rfc_index():
 def create_data_field(cookie, port):
     return {"cookie": cookie, "port": port}
 
+
+def periodic_ttl_reduction(head, last_time_updated):
+    if head:
+        current_time = int(time.time())
+        decrement_value = current_time - last_time_updated
+        utils.Logging.info("TTL reduction by %s" % decrement_value)
+        ptr = head
+        while ptr:
+            ptr.rfc.decrement_ttl(decrement_value)
+            ptr = ptr.nxt
+
+
+def check_rfc_metadata(rfc_number):
+    metadata = read_rfc_metadata()
+    for rfc in metadata["rfcs"]:
+        if rfc["number"] == rfc_number:
+            return get_rfc_path(rfc_number)
+    return None
+
+
+def get_rfc_from_peers(peer_info, rfc_number):
+    utils.Logging.debug("Entering peer.get_rfc_from_peers")
+    rfc_path = None
+    for peer in peer_info.peers:
+        peer_rfc_index_head = get_rfc_index_from_peer(peer["hostname"], peer["port"])
+        peer_info.rfc_index_head = peer_rfc_index_head.merge(peer_info.rfc_index_head)
+        rfc = peer_info.rfc_index_head.find(rfc_number)
+        if rfc and rfc.hostname == peer["hostname"]:
+            utils.Logging.info("RFC found on (%s, %s)" % (peer["hostname"], peer["port"]))
+            rfc_path = get_rfc_from_peer(peer["hostname"], peer["port"], rfc_number)
+            update_rfc_metadata(rfc.number, rfc.title)
+    utils.Logging.debug("Exiting peer.get_rfc_from_peers")
+    return rfc_path
+
+
+# Query a peer for its RFC index
+def get_rfc_index_from_peer(hostname, port):
+    utils.Logging.debug("Entering peer.get_rfc_index_from_peer")
+    peer_rfc_index_head = None
+    sock = utils.send_request(hostname, port, "RFCQuery", {})
+    response = utils.accept_response(sock)
+    if response.status == "200":
+        peer_rfc_index_head = records.decode_list(hostname, response.data)
+    utils.Logging.debug("Exiting peer.get_rfc_index_from_peer")
+    return peer_rfc_index_head
+
+
+# Get RFC from a peer
+def get_rfc_from_peer(peer_ip, peer_port, rfc_number):
+    utils.Logging.debug("Entering peer.get_rfc_from_peer")
+    sock = utils.send_request(peer_ip, peer_port, "GetRFC", {"rfc": rfc_number})
+    rfc_path = get_rfc_path(rfc_number)
+    downloaded = utils.accept_rfc(sock, rfc_path)
+    if not downloaded:
+        rfc_path = None
+    utils.Logging.debug("Exiting peer.get_rfc_from_peer")
+    return rfc_path
