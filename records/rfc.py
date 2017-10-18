@@ -18,6 +18,9 @@ class RFC:
         else:
             return True
 
+    def display(self):
+        return "%-15s %-5s %-40s %-5s" % (self.hostname, self.number, self.title, self.ttl)
+
 
 # Node class represents the node in the linked list. Instantiate this class to create nodes
 class Node:
@@ -32,27 +35,25 @@ class Node:
 
     # Find a node in the linked list by rfc number and return the rfc object if found
     def find(self, rfc_number):
-        if self.rfc.number == rfc_number:
-            if self.rfc.is_active():
-                return self.rfc
-            else:
-                return None
-        elif self.nxt:
-            self.nxt.find(rfc_number)
-        else:
-            return None
+        ptr = self
+        while ptr:
+            if ptr.rfc.number == rfc_number and ptr.rfc.is_active():
+                print "RFC found and active"
+                return ptr.rfc
+            ptr = ptr.nxt
+        return None
 
     # Find a node in the linked list and update it if it exists
     def find_and_update(self, rfc):
-        if self.rfc.number == rfc.number:
-            self.rfc.title = rfc.title
-            self.rfc.hostname = rfc.hostname
-            self.rfc.ttl = 7200
-            return True
-        elif self.nxt:
-            self.nxt.find_and_update(rfc)
-        else:
-            return False
+        ptr = self
+        while ptr:
+            if ptr.rfc.number == rfc.number:
+                self.rfc.title = rfc.title
+                self.rfc.hostname = rfc.hostname
+                self.rfc.ttl = 7200
+                return True
+            ptr = ptr.nxt
+        return False
 
     # Prepend a node
     def insert(self, node):
@@ -60,33 +61,22 @@ class Node:
             self.nxt = node
         return self
 
-    # Merge a list with another list
-    def merge(self, head):
-        ptr = head
-        new_list = None
-        while ptr:
-            if not self.find_and_update(ptr.rfc):
-                node = Node(RFC(ptr.rfc.hostname, ptr.rfc.number, ptr.rfc.title))
-                if not new_list:
-                    new_list = node
-                else:
-                    node.nxt = new_list
-                    new_list = node
-            ptr = ptr.nxt
 
-        if new_list:
-            ptr = new_list
-            while ptr:
-                if not ptr.nxt:
-                    ptr.nxt = head
-                    break
-                ptr = ptr.nxt
-
-        return new_list
+# Merge list b into list a and return the updated a
+def merge(a, b):
+    if a:
+        node = b
+        while node:
+            if not a.find_and_update(node.rfc):
+                a = a.insert(node.rfc)
+            node = node.nxt
+        return a
+    else:
+        return b
 
 
 # This function returns the hashed representation of the linked list
-def encode_list(head):
+def encode_rfc_list(head):
     node = head
     hash_list = []
     while node:
@@ -96,9 +86,21 @@ def encode_list(head):
 
 
 # This function returns a linked list for a given hashed representation
-def decode_list(hostname, hash_list):
+def decode_rfc_list(hostname, hash_list):
     head = None
     for rfc in hash_list["rfcs"]:
         node = Node(RFC(hostname, rfc["number"], rfc["title"]))
         head = node.insert(head)
     return head
+
+
+def display_rfc_list(head):
+    node = head
+    table = "\n%-15s %-5s %-40s %-5s" % ("Hostname", "RFC#", "Title", "TTL")
+    if node:
+        while node:
+            table += "\n%-15s %-5s %-40s %-5s" % (node.rfc.hostname, node.rfc.number, node.rfc.title, node.rfc.ttl)
+            node = node.nxt
+    else:
+        table += "\n%-15s %-5s %-40s %-5s" % ("None", "None", "None", "None")
+    return table

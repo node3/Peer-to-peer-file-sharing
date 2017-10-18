@@ -50,7 +50,7 @@ def keep_alive_request(server_ip, server_port, params):
 # Handle an rfc query request
 def handle_rfcs_query(rfc_index_head):
     utils.Logging.debug("Entering peer.handle_rfcs_query")
-    node_list = records.encode_list(rfc_index_head)
+    node_list = records.encode_rfc_list(rfc_index_head)
     utils.Logging.debug("Exiting peer.handle_rfcs_query")
     return {"rfcs": node_list}
 
