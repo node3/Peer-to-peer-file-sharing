@@ -79,6 +79,7 @@ def flow_handler(peer_info, config, choice):
     elif choice == "5":
         if peer_info.peers:
             rfc_number = raw_input("Enter the rfc # to be downloaded : ")
+            print "RFC number type %s" % type(rfc_number)
             local_rfc = check_rfc_metadata(rfc_number)
             if local_rfc:
                 continue_or_exit("RFC locally available at %s" % local_rfc)

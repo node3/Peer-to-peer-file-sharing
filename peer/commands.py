@@ -62,7 +62,7 @@ def build_rfc_index():
     head = None
     if metadata:
         for obj in metadata["rfcs"]:
-            rfc = records.RFC(obj["number"], obj["title"], "localhost")
+            rfc = records.RFC("localhost", obj["number"], obj["title"])
             rfc_node = records.Node(rfc)
             head = rfc_node.insert(head)
     else:
@@ -87,10 +87,13 @@ def periodic_ttl_reduction(head, last_time_updated):
 
 
 def check_rfc_metadata(rfc_number):
+    utils.Logging.debug("Entering peer.check_rfc_metadata")
     metadata = read_rfc_metadata()
-    for rfc in metadata["rfcs"]:
-        if rfc["number"] == rfc_number:
-            return get_rfc_path(rfc_number)
+    if metadata and metadata["rfcs"]:
+        for rfc in metadata["rfcs"]:
+            if rfc["number"] == rfc_number:
+                return get_rfc_path(rfc_number)
+    utils.Logging.debug("Exiting peer.check_rfc_metadata")
     return None
 
 
@@ -99,12 +102,13 @@ def get_rfc_from_peers(peer_info, rfc_number):
     rfc_path = None
     for peer in peer_info.peers:
         peer_rfc_index_head = get_rfc_index_from_peer(peer["hostname"], peer["port"])
-        peer_info.rfc_index_head = peer_rfc_index_head.merge(peer_info.rfc_index_head)
-        rfc = peer_info.rfc_index_head.find(rfc_number)
-        if rfc and rfc.hostname == peer["hostname"]:
-            utils.Logging.info("RFC found on (%s, %s)" % (peer["hostname"], peer["port"]))
-            rfc_path = get_rfc_from_peer(peer["hostname"], peer["port"], rfc_number)
-            update_rfc_metadata(rfc.number, rfc.title)
+        if peer_rfc_index_head:
+            peer_info.rfc_index_head = peer_rfc_index_head.merge(peer_info.rfc_index_head)
+            rfc = peer_info.rfc_index_head.find(rfc_number)
+            if rfc and rfc.hostname == peer["hostname"]:
+                utils.Logging.info("RFC found on (%s, %s)" % (peer["hostname"], peer["port"]))
+                rfc_path = get_rfc_from_peer(peer["hostname"], peer["port"], rfc_number)
+                update_rfc_metadata(rfc.number, rfc.title)
     utils.Logging.debug("Exiting peer.get_rfc_from_peers")
     return rfc_path
 
@@ -117,6 +121,7 @@ def get_rfc_index_from_peer(hostname, port):
     response = utils.accept_response(sock)
     if response.status == "200":
         peer_rfc_index_head = records.decode_list(hostname, response.data)
+    print "***************%s" % peer_rfc_index_head.rfc.title
     utils.Logging.debug("Exiting peer.get_rfc_index_from_peer")
     return peer_rfc_index_head
 

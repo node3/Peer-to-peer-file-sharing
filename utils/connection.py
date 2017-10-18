@@ -77,7 +77,7 @@ def listen4clients(server_address):
             Logging.info("%s. Retrying..." % err)
             sleep(5)
             timeout -= 5
-    if timeout < 0:
+    if timeout <= 0:
         Logging.error("Could not bind to (%s, %s) within %d seconds" % (server_address, BIND_TIMEOUT))
     else:
         Logging.debug("Exiting utils.listen4clients")

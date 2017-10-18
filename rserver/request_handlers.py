@@ -6,13 +6,17 @@ from commands import *
 # Register a new peer into the server. Creates a new node and adds it to the linked list.
 def handle_registration(head, hostname, port):
     utils.Logging.debug("Entering rserver.handle_registration")
-    if not is_peer_registered(head, hostname, port):
+    registry_id = is_peer_registered(head, hostname, port)
+    if registry_id == 0:
         head = register_peer(head, hostname, port)
-        peer_registered = True
+        cookie = head.peer.cookie
+    # This flow is when the peer forgets it cookie and tries to re-register.
+    # The server will return its old cookie after recognising it with the hostname and port combination
     else:
-        peer_registered = False
+        cookie = registry_id
+        handle_keep_alive(head, cookie)
     utils.Logging.debug("Exiting rserver.handle_registration")
-    return head, peer_registered
+    return head, cookie
 
 
 # Removes a peer from the linked list

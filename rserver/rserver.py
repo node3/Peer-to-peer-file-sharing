@@ -28,18 +28,15 @@ def main():
 # multiplex the request to appropriate command with respective parameters
 def process_request(head, request):
     utils.Logging.debug("Entering rserver.process_request")
-    data = {"message": "Request message has an invalid command"}
-    status = "300"
     if request.command == "Register":
         if "cookie" in request.data and request.data["cookie"]:
             handle_keep_alive(head, request.data["cookie"])
             data = {"message": "TTL updated to 7200 seconds."}
             status = "201"
         elif "port" in request.data and request.data["port"]:
-            head, peer_registered = handle_registration(head, request.hostname, request.data["port"])
-            if peer_registered:
-                data = {"cookie": head.peer.cookie}
-                status = "200"
+            head, cookie = handle_registration(head, request.hostname, request.data["port"])
+            data = {"cookie": cookie}
+            status = "200"
         else:
             data = {"message": "Received Register request without port or cookie"}
             status = "300"
@@ -74,9 +71,19 @@ def process_request(head, request):
         else:
             data = {"message": "Received KeepAlive request without cookie"}
             status = "300"
+    else:
+        data = {"message": "Request message has an invalid command"}
+        status = "300"
 
     utils.Logging.debug("Exiting rserver.process_request")
     response = records.P2PResponse(status, data)
+    # try:
+    #     utils.Logging.debug("Exiting rserver.process_request")
+    #     response = records.P2PResponse(status, data)
+    # except UnboundLocalError:
+    #     print "Perhaps *********%s************" % request.command
+    #     request.display()
+
     return head, response
 
 

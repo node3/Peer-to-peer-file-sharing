@@ -101,4 +101,4 @@ def decode_list(hostname, hash_list):
     for rfc in hash_list["rfcs"]:
         node = Node(RFC(hostname, rfc["number"], rfc["title"]))
         head = node.insert(head)
-
+    return head

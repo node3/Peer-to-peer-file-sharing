@@ -5,10 +5,10 @@ import utils
 
 def is_peer_registered(head, hostname, port):
     ptr = head
-    peer_registered = False
+    peer_registered = 0
     while ptr:
         if ptr.peer.hostname == hostname and ptr.peer.port == port:
-            peer_registered = True
+            peer_registered = ptr.peer.cookie
             break
         ptr = ptr.nxt
     return peer_registered
