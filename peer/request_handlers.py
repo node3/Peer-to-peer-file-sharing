@@ -62,6 +62,7 @@ def get_rfc_from_peers(peer_info, rfc_number):
         if peer_rfc_index_head:
             utils.Logging.info("Displaying rfc list from (%s, %s) :%s\n"
                                % (peer["hostname"], peer["port"], records.display_rfc_list(peer_rfc_index_head)))
+            # peer_info.rfc_index_head = records.merge(peer_info.rfc_index_head, peer_rfc_index_head)
             peer_info.rfc_index_head = records.merge(peer_info.rfc_index_head, peer_rfc_index_head)
             utils.Logging.info("Displaying rfc list on merge :%s\n"
                                % records.display_rfc_list(peer_info.rfc_index_head))
@@ -73,6 +74,7 @@ def get_rfc_from_peers(peer_info, rfc_number):
                 utils.Logging.info("RFC found on (%s, %s)" % (peer["hostname"], peer["port"]))
                 rfc_path = get_rfc_from_peer(peer["hostname"], peer["port"], rfc_number)
                 update_rfc_metadata(rfc.number, rfc.title)
+                peer_info.rfc_index_head = update_rfc_index(peer_info.rfc_index_head, rfc)
     utils.Logging.debug("Exiting peer.get_rfc_from_peers")
     return rfc_path
 

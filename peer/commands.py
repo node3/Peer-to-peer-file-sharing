@@ -3,10 +3,11 @@ import utils
 import records
 import json
 import time
+import records
 
 
 def get_rfc_dir():
-    rfc_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rfc")
+    rfc_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "rfc")
     if not os.path.exists(rfc_dir):
         os.makedirs(rfc_dir)
     return rfc_dir
@@ -63,12 +64,26 @@ def build_rfc_index():
     if metadata:
         for obj in metadata["rfcs"]:
             rfc = records.RFC("localhost", obj["number"], obj["title"])
-            rfc_node = records.Node(rfc)
-            head = rfc_node.insert(head)
+            if head:
+                head.insert(rfc)
+            else:
+                head = records.Node(rfc)
     else:
         utils.Logging.info("Metadata empty, no records of local rfcs found")
     utils.Logging.debug("Exiting peer.build_rfc_index")
     return head
+
+
+def update_rfc_index(rfc_index_head, rfc):
+    utils.Logging.debug("Entering peer.build_rfc_index")
+    rfc.hostname = "localhost"
+    if rfc_index_head:
+        if not rfc_index_head.find_and_update(rfc):
+            rfc_index_head.insert(rfc)
+    else:
+        rfc_index_head = records.Node(rfc)
+    utils.Logging.debug("Exiting peer.build_rfc_index")
+    return rfc_index_head
 
 
 def create_data_field(cookie, port):

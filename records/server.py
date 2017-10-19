@@ -63,9 +63,10 @@ class Peers:
 
 
 def display_swarm_table(head):
-    breaker = "\n-----------------------------------------------"
+    message = "\nThe server is aware of the following : \n"
+    breaker = "\n" + "-"*100
     if head:
         swarm_table = head.show_swarm()
     else:
         swarm_table = "\nNo peers registered on this server."
-    return breaker + swarm_table + breaker
+    return breaker + message + swarm_table + breaker

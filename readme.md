@@ -11,5 +11,4 @@ python client.py -c ../config.json -i 1 -d
 ##TODO
 no pickle failure
 Update readme
-move rfc folder into project dir
 add 60 RFCs

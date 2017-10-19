@@ -1,4 +1,7 @@
-# RFC class contains the information about an RFC
+# RFC class contains the information about an RFC.
+# This is maintained by the peer server and initially picked up from metadata.json
+
+
 class RFC:
     def __init__(self, hostname, number, title):
         self.number = number
@@ -54,21 +57,25 @@ class Node:
             ptr = ptr.nxt
         return False
 
-    # Prepend a node
-    def insert(self, node):
-        if node:
-            self.nxt = node
-        return self
+    # Insert an rfc at the end of the list
+    def insert(self, rfc):
+        node = Node(rfc)
+        ptr = self
+        while True:
+            if not ptr.nxt:
+                ptr.nxt = node
+                break
+            ptr = ptr.nxt
 
 
 # Merge list b into list a and return the updated a
 def merge(a, b):
     if a:
-        node = b
-        while node:
-            if not a.find_and_update(node.rfc):
-                a = a.insert(node.rfc)
-            node = node.nxt
+        ptr = b
+        while ptr:
+            if not a.find_and_update(ptr.rfc):
+                a.insert(ptr.rfc)
+            ptr = ptr.nxt
         return a
     else:
         return b
@@ -88,8 +95,11 @@ def encode_rfc_list(head):
 def decode_rfc_list(hostname, hash_list):
     head = None
     for rfc in hash_list["rfcs"]:
-        node = Node(RFC(hostname, rfc["number"], rfc["title"]))
-        head = node.insert(head)
+        rfc = RFC(hostname, rfc["number"], rfc["title"])
+        if head:
+            head.insert(rfc)
+        else:
+            head = Node(rfc)
     return head
 
 

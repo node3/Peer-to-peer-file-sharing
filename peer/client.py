@@ -26,16 +26,15 @@ def main():
 
 
 def user_interaction():
-
     guide = "\n\t\t\t\t*** Welcome to P2P client ***\n" \
-            "\n\n\t\tSelect an action by pressing its serial number" \
             "\n\t\t(1) Register with server" \
             "\n\t\t(2) Leave the registration server" \
             "\n\t\t(3) Query for peers" \
             "\n\t\t(4) Send keep-alive signal to registration server" \
             "\n\t\t(5) Get an RFC" \
             "\n\t\t(7) View current state of the peer" \
-            "\n\t\t(0) Exit"
+            "\n\t\t(0) Exit" \
+            "\n\n\t\tSelect an action by pressing its serial number : "
     utils.Logging.info(guide)
     choice = raw_input()
     return choice
