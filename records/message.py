@@ -18,9 +18,16 @@ class P2PMessage:
 
     def encode(self):
         try:
-            return pickle.dumps(self)
+            return pickle.dumps(self, -1)
         except pickle.PicklingError:
             raise Exception("Could not encode the object")
+
+    @staticmethod
+    def decode(encoded_msg):
+        try:
+            return pickle.loads(encoded_msg)
+        except pickle.UnpicklingError:
+            raise Exception("Could not decode the object")
 
     def display(self):
         # Implement this in the child classes
@@ -37,13 +44,6 @@ class P2PMessage:
     @staticmethod
     def get_version():
         return 'P2P-DI/1.0'
-
-    @staticmethod
-    def decode(encoded_msg):
-        try:
-            return pickle.loads(encoded_msg)
-        except pickle.UnpicklingError:
-            raise Exception("Could not decode the object")
 
 
 # P2RSRequest is used create request messages during client and server communication
@@ -73,9 +73,11 @@ class P2PResponse(P2PMessage):
     def display(self):
         return "%s %s\n%s %s\n%s" % (self.status, self.version, self.hostname, self.os, str(self.data))
 
+    # call it after unpickling
     def validate(self):
         if self.status not in VALID_STATUS.keys():
             raise Exception("%s not a valid status. Cannot create the P2PResponse object." % self.status)
 
     def status_message(self):
         return VALID_STATUS[self.status]
+

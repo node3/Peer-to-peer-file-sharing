@@ -9,6 +9,5 @@ python rserver.py -c ../config.json -d
 python client.py -c ../config.json -i 1 -d
 
 ##TODO
-no pickle failure
 Update readme
 add 60 RFCs

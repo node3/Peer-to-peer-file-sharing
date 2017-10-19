@@ -77,6 +77,7 @@ def build_rfc_index():
 def update_rfc_index(rfc_index_head, rfc):
     utils.Logging.debug("Entering peer.build_rfc_index")
     rfc.hostname = "localhost"
+    rfc.ttl = "7200"
     if rfc_index_head:
         if not rfc_index_head.find_and_update(rfc):
             rfc_index_head.insert(rfc)
