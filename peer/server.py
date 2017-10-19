@@ -1,10 +1,12 @@
-from request_handlers import *
-import utils
-from time import sleep
 from socket import error as socket_error
+from time import sleep
 
-
+import utils
+from request_handlers import *
 # Server maintains a server thread running
+from utils import get_rfc_path
+
+
 def server(config, peer_info, peer_id, debug):
     utils.Logging.debug_mode = debug
     utils.Logging.info("Starting a peer server in background.")
@@ -48,9 +50,15 @@ def process_request(connection, peer_info, request):
         utils.send_response(connection, records.P2PResponse(status, data))
     elif request.command == "GetRFC":
         if "rfc" in request.data:
-            rfc_file = os.path.join(get_rfc_dir(), request.data["rfc"] + ".txt")
-            if os.path.exists(rfc_file):
-                utils.send_rfc(connection, rfc_file)
+            metadata = read_rfc_metadata()
+            rfc = None
+            for rfc_meta in metadata["rfcs"]:
+                if rfc_meta["number"] == request.data["rfc"]:
+                    rfc = rfc_meta
+                    break
+            rfc_file = get_rfc_path(rfc)
+            if rfc and os.path.exists(rfc_file):
+                utils.send_rfc(connection, rfc_file, rfc["format"])
             else:
                 status = "100"
                 data = {"message": "Requested RFC %s not found" % request.data["rfc"]}

@@ -14,6 +14,7 @@ def main():
     t = utils.FuncThread(server, config, peer_info, PEER_ID, args.debug)
     t.setDaemon(True)
     t.start()
+
     last_time_updated = int(time.time())
     while True:
         try:
@@ -103,16 +104,6 @@ def flow_handler(peer_info, config, choice):
 
     else:
         print_and_continue("Incorrect choice")
-
-
-# def continue_or_exit(message):
-#     utils.Logging.info(message)
-#     try:
-#         utils.Logging.info("\nPress any key to go back to the menu. Press Control+C to exit.")
-#         raw_input()
-#     except KeyboardInterrupt:
-#         utils.Logging.info("Client shutting down")
-#         exit(0)
 
 
 def print_and_continue(message):

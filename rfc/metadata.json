@@ -1,15 +1,19 @@
 {
 	"rfcs": [{
 		"number": "959",
-		"title": "FILE TRANSFER PROTOCOL (FTP)"
+		"title": "FILE TRANSFER PROTOCOL (FTP)",
+		"format": "txt"
 	}, {
 		"number": "1945",
-		"title": "Hypertext Transfer Protocol -- HTTP/1.0"
+		"title": "Hypertext Transfer Protocol -- HTTP/1.0",
+		"format": "txt"
 	}, {
 		"number": "2616",
-		"title": "Hypertext Transfer Protocol -- HTTP/1.1"
+		"title": "Hypertext Transfer Protocol -- HTTP/1.1",
+		"format": "txt"
 	}, {
 		"number": "5905",
-		"title": "Network Time Protocol Version 4: Protocol and Algorithms Specification"
+		"title": "Network Time Protocol Version 4: Protocol and Algorithms Specification",
+		"format": "txt"
 	}]
 }

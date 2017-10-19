@@ -7,7 +7,3 @@ python rserver.py -c ../config.json -d
 
 ##Run client
 python client.py -c ../config.json -i 1 -d
-
-##TODO
-Update readme
-add 60 RFCs

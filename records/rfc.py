@@ -50,9 +50,9 @@ class Node:
         ptr = self
         while ptr:
             if ptr.rfc.number == rfc.number:
-                self.rfc.title = rfc.title
-                self.rfc.hostname = rfc.hostname
-                self.rfc.ttl = 7200
+                ptr.rfc.title = rfc.title
+                ptr.rfc.hostname = rfc.hostname
+                ptr.rfc.ttl = 7200
                 return True
             ptr = ptr.nxt
         return False
@@ -61,7 +61,7 @@ class Node:
     def insert(self, rfc):
         node = Node(rfc)
         ptr = self
-        while True:
+        while ptr:
             if not ptr.nxt:
                 ptr.nxt = node
                 break
@@ -73,8 +73,12 @@ def merge(a, b):
     if a:
         ptr = b
         while ptr:
-            if not a.find_and_update(ptr.rfc):
+            rfc = a.find(ptr.rfc.number)
+            if not rfc:
                 a.insert(ptr.rfc)
+            elif rfc.hostname != ptr.rfc.hostname:
+                if rfc.hostname != "localhost":
+                    a.insert(ptr.rfc)
             ptr = ptr.nxt
         return a
     else:

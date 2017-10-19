@@ -1,4 +1,5 @@
 import json
+import os
 import threading
 
 
@@ -53,3 +54,18 @@ class FuncThread(threading.Thread):
 
     def run(self):
         self._target(*self._args)
+
+
+def get_rfc_dir():
+    rfc_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "rfc")
+    if not os.path.exists(rfc_dir):
+        os.makedirs(rfc_dir)
+    return rfc_dir
+
+
+def get_rfc_path(rfc):
+    if rfc:
+        return os.path.join(get_rfc_dir(), ".".join([rfc["number"], rfc["format"]]))
+    else:
+        return None
+
