@@ -30,9 +30,12 @@ def run_server(config, peer_info, peer_id):
     # Serve incoming connections until failure
     while True:
         try:
-            utils.Logging.info("\n\t--------")
+            utils.Logging.info("\n\t***** We are listening for requests *****")
             connection, request = utils.accept_request(sock)
-            process_request(connection, peer_info, request)
+            utils.Logging.info("\n\t***** Spawning a new thread the serve the new request *****")
+            t = utils.FuncThread(process_request, connection, peer_info, request)
+            t.setDaemon(True)
+            t.start()
         except KeyboardInterrupt:
             break
         except BaseException as err:
