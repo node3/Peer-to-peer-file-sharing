@@ -35,7 +35,7 @@ def user_interaction():
             "\n\t\t(3) Query for peers" \
             "\n\t\t(4) Send keep-alive signal to registration server" \
             "\n\t\t(5) Get an RFC" \
-            "\n\t\t(7) View current state of the peer" \
+            "\n\t\t(6) View current state of the peer" \
             "\n\t\t(0) Exit" \
             "\n\n\t\tSelect an action by pressing its serial number : "
     utils.Logging.info(guide)
@@ -98,7 +98,7 @@ def flow_handler(peer_info, config, choice):
             print_and_continue("Peer list found empty. Query for peers from registration server first")
 
     # Display current state of the peer
-    elif choice == "7":
+    elif choice == "6":
         print_and_continue(peer_info.display_peer_state())
 
     elif choice == "0":
