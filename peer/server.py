@@ -51,14 +51,19 @@ def process_request(connection, peer_info, request):
     elif request.command == "GetRFC":
         if "rfc" in request.data:
             metadata = read_rfc_metadata()
-            rfc = None
-            for rfc_meta in metadata["rfcs"]:
-                if rfc_meta["number"] == request.data["rfc"]:
-                    rfc = rfc_meta
-                    break
-            rfc_file = get_rfc_path(rfc)
-            if rfc and os.path.exists(rfc_file):
-                utils.send_rfc(connection, rfc_file, rfc["format"])
+            if metadata:
+                rfc = None
+                for rfc_meta in metadata["rfcs"]:
+                    if rfc_meta["number"] == request.data["rfc"]:
+                        rfc = rfc_meta
+                        break
+                rfc_file = get_rfc_path(rfc)
+                if rfc and os.path.exists(rfc_file):
+                    utils.send_rfc(connection, rfc_file, rfc["format"])
+                else:
+                    status = "100"
+                    data = {"message": "Requested RFC %s not found" % request.data["rfc"]}
+                    utils.send_response(connection, records.P2PResponse(status, data))
             else:
                 status = "100"
                 data = {"message": "Requested RFC %s not found" % request.data["rfc"]}

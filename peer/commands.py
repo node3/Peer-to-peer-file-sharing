@@ -18,7 +18,7 @@ def read_rfc_metadata():
             except ValueError as err:
                 utils.Logging.info("Could not load %s. %s" % (metadata_file, err))
     except IOError:
-        utils.Logging.info("No %s found" % metadata_file)
+        utils.Logging.debug("No %s found" % metadata_file)
     utils.Logging.debug("Exiting peer.read_rfc_metadata")
     return metadata
 
@@ -104,10 +104,13 @@ def check_rfc_metadata(rfc_number):
 def get_rfc_index_from_peer(hostname, port):
     utils.Logging.debug("Entering peer.get_rfc_index_from_peer")
     peer_rfc_index_head = None
-    sock = utils.send_request(hostname, port, "RFCQuery", {})
-    response = utils.accept_response(sock)
-    if response.status == "200":
-        peer_rfc_index_head = records.decode_rfc_list(hostname, response.data)
+    try:
+        sock = utils.send_request(hostname, port, "RFCQuery", {})
+        response = utils.accept_response(sock)
+        if response.status == "200":
+            peer_rfc_index_head = records.decode_rfc_list(hostname, response.data)
+    except BaseException as err:
+        utils.Logging.info(err)
     utils.Logging.debug("Exiting peer.get_rfc_index_from_peer")
     return peer_rfc_index_head
 
@@ -115,8 +118,12 @@ def get_rfc_index_from_peer(hostname, port):
 # Get RFC from a peer
 def get_rfc_from_peer(peer_ip, peer_port, rfc):
     utils.Logging.debug("Entering peer.get_rfc_from_peer")
-    sock = utils.send_request(peer_ip, peer_port, "GetRFC", {"rfc": rfc.number})
-    rfc_path, rfc_format = utils.accept_rfc(sock, rfc.number)
-    update_rfc_metadata(rfc.number, rfc.title, rfc_format)
+    rfc_path = None
+    try:
+        sock = utils.send_request(peer_ip, peer_port, "GetRFC", {"rfc": rfc.number})
+        rfc_path, rfc_format = utils.accept_rfc(sock, rfc.number)
+        update_rfc_metadata(rfc.number, rfc.title, rfc_format)
+    except BaseException as err:
+        utils.Logging.info(err)
     utils.Logging.debug("Exiting peer.get_rfc_from_peer")
     return rfc_path

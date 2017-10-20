@@ -5,7 +5,7 @@ from time import sleep
 import utils
 
 CONNECT_TIMEOUT = 5
-BIND_TIMEOUT = 30
+BIND_TIMEOUT = 120
 
 
 # Create a connection object from client to server
@@ -18,7 +18,7 @@ def connect2server(hostname, port):
     try:
         sock.connect(server_address)
     except socket.error as err:
-        Logging.error("Connect to server (%s, %s) failed due to %s" % (hostname, port, err))
+        raise Exception("Connect to server (%s, %s) failed due to %s" % (hostname, port, err))
 
     Logging.info("Connected to server (%s, %s)" % server_address)
     Logging.debug("Exiting utils.connect2server")
@@ -39,7 +39,7 @@ def send_request(peer_ip, peer_port, command, data):
         sock.sendall(request.encode())
     except socket.error as err:
         sock.close()
-        Logging.error("send_request failed with error %s" % err)
+        raise Exception("send_request failed with error %s" % err)
     Logging.debug("Exiting utils.send_request")
     return sock
 
@@ -52,7 +52,7 @@ def accept_response(sock):
     try:
         msg_str = sock.recv(1024)
     except socket.error as err:
-        Logging.error("accept_response failed with error %s" % err)
+        raise Exception("accept_response failed with error %s" % err)
 
     # Decode the response
     response = records.P2PResponse.decode(msg_str)
@@ -79,8 +79,8 @@ def listen4clients(server_address):
             sleep(5)
             timeout -= 5
     if timeout <= 0:
-        Logging.error("Could not bind to %s within %d seconds. Server could not be started."
-                      % (str(server_address), BIND_TIMEOUT))
+        raise Exception("Could not bind to %s within %d seconds. Server could not be started."
+                        % (str(server_address), BIND_TIMEOUT))
     else:
         Logging.debug("Exiting utils.listen4clients")
         return sock
@@ -121,7 +121,8 @@ def accept_rfc(sock, rfc_number):
     try:
         msg_str = sock.recv(1024)
     except socket.error as err:
-        Logging.error("accept_rfc failed with error %s" % err)
+        Logging.info("accept_rfc failed with error %s" % err)
+        return None, None
     response = records.P2PResponse.decode(msg_str)
     Logging.info("Received response \n%s" % response.display())
 

@@ -24,6 +24,8 @@ def main():
             flow_handler(peer_info, config, choice)
         except KeyboardInterrupt:
             utils.Logging.exit("Client shutting down")
+        # except BaseException as err:
+        #     utils.Logging.info(err)
 
 
 def user_interaction():

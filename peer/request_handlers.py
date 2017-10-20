@@ -50,30 +50,44 @@ def keep_alive_request(server_ip, server_port, params):
 def get_rfc_from_peers(peer_info, rfc_number):
     utils.Logging.debug("Entering peer.get_rfc_from_peers")
     rfc_path = None
-    # utils.Logging.info("Local RFC index before querying any peers :%s\n"
-    #                    % records.display_rfc_list(peer_info.rfc_index_head))
+    utils.Logging.info("Local RFC index before querying any peers :%s\n"
+                       % records.display_rfc_list(peer_info.rfc_index_head))
 
-    # Query all peers for rfc
-    for peer in peer_info.peers:
+    # Check if the local index exists
+    if peer_info.rfc_index_head:
+        # Check if local index has the RFC we want
+        rfc = peer_info.rfc_index_head.find(rfc_number)
+        if rfc:
+            # Download the rfc and update the local index
+            for peer in peer_info.peers:
+                if rfc.hostname == peer["hostname"]:
+                    utils.Logging.info("RFC found on (%s, %s)" % (peer["hostname"], peer["port"]))
+                    rfc_path = get_rfc_from_peer(peer["hostname"], peer["port"], rfc)
+                    if rfc_path:
+                        peer_info.rfc_index_head = update_rfc_index(peer_info.rfc_index_head, rfc)
+                        break
 
-        # Query a peer for its rfc index head
-        peer_rfc_index_head = get_rfc_index_from_peer(peer["hostname"], peer["port"])
-        if peer_rfc_index_head:
-            utils.Logging.info("Local RFC index before querying any peers :%s\n"
-                               % records.display_rfc_list(peer_info.rfc_index_head))
-            utils.Logging.info("RFC index retrieved from peer at (%s, %s) :%s\n"
-                               % (peer["hostname"], peer["port"], records.display_rfc_list(peer_rfc_index_head)))
-            peer_info.rfc_index_head = records.merge(peer_info.rfc_index_head, peer_rfc_index_head)
-            utils.Logging.info("RFC index after merging local and retrieved index :%s\n"
-                               % records.display_rfc_list(peer_info.rfc_index_head))
+    else:
+        # Query all peers for rfc by checking their index
+        for peer in peer_info.peers:
+            # Query a peer for its rfc index head
+            peer_rfc_index_head = get_rfc_index_from_peer(peer["hostname"], peer["port"])
+            if peer_rfc_index_head:
+                utils.Logging.info("RFC index retrieved from peer at (%s, %s) :%s\n"
+                                   % (peer["hostname"], peer["port"], records.display_rfc_list(peer_rfc_index_head)))
+                peer_info.rfc_index_head = records.merge(peer_info.rfc_index_head, peer_rfc_index_head)
+                utils.Logging.info("RFC index after merging local and retrieved index :%s\n"
+                                   % records.display_rfc_list(peer_info.rfc_index_head))
 
-            # Check if the local rfc indexed combined with peer rfc index contains the rfc required
-            rfc = peer_info.rfc_index_head.find(rfc_number)
-            if rfc:
-                # Download the rfc and update the local index
-                utils.Logging.info("RFC found on (%s, %s)" % (peer["hostname"], peer["port"]))
-                rfc_path = get_rfc_from_peer(peer["hostname"], peer["port"], rfc)
-                peer_info.rfc_index_head = update_rfc_index(peer_info.rfc_index_head, rfc)
+                # Check if the local rfc indexed combined with peer rfc index contains the rfc required
+                rfc = peer_info.rfc_index_head.find(rfc_number)
+                if rfc:
+                    # Download the rfc and update the local index
+                    utils.Logging.info("RFC found on (%s, %s)" % (peer["hostname"], peer["port"]))
+                    rfc_path = get_rfc_from_peer(peer["hostname"], peer["port"], rfc)
+                    if rfc_path:
+                        peer_info.rfc_index_head = update_rfc_index(peer_info.rfc_index_head, rfc)
+                        break
     utils.Logging.debug("Exiting peer.get_rfc_from_peers")
     return rfc_path
 
