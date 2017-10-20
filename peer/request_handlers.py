@@ -66,8 +66,7 @@ def get_rfc_from_peers(peer_info, rfc_number):
                     if rfc_path:
                         peer_info.rfc_index_head = update_rfc_index(peer_info.rfc_index_head, rfc)
                         break
-
-    else:
+    if not rfc_path:
         # Query all peers for rfc by checking their index
         for peer in peer_info.peers:
             # Query a peer for its rfc index head

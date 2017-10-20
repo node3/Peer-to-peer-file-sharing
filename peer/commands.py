@@ -122,7 +122,8 @@ def get_rfc_from_peer(peer_ip, peer_port, rfc):
     try:
         sock = utils.send_request(peer_ip, peer_port, "GetRFC", {"rfc": rfc.number})
         rfc_path, rfc_format = utils.accept_rfc(sock, rfc.number)
-        update_rfc_metadata(rfc.number, rfc.title, rfc_format)
+        if rfc_path:
+            update_rfc_metadata(rfc.number, rfc.title, rfc_format)
     except BaseException as err:
         utils.Logging.info(err)
     utils.Logging.debug("Exiting peer.get_rfc_from_peer")

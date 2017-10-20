@@ -36,6 +36,7 @@ def handle_leaving(head, cookie):
             peer_ejected = True
             break
         else:
+            prev = ptr
             ptr = ptr.nxt
     utils.Logging.debug("Exiting rserver.handle_leaving")
     return head, peer_ejected
