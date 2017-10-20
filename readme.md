@@ -21,8 +21,8 @@
     3. Query for peers
     4. Send keep-alive signal to registration server
     5. Get an RFC
-    6.View current state of the peer
-    7. Exit
+    6. View current state of the peer
+    0. Exit
 
 
 8. The first 5 options are as commands of the P2P protocol. The sixth option allows user to view the current state of the peer’s awareness with respect to its assigned cookie, known peers and RFC index. Moreover, each option displays the set of messages exchanged and also shows any changes in the current state of the peer.
