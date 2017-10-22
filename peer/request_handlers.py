@@ -108,5 +108,13 @@ def handle_get_rfc(rfc_file):
     f.close()
 
 
-
-
+def periodic_keep_alive(peer_info, hostname, port):
+    sleep_timer = 60
+    while True:
+        try:
+            if peer_info.cookie:
+                params = create_data_field(peer_info.cookie, None)
+                keep_alive_request(hostname, port, params)
+        except BaseException as err:
+            utils.Logging.info("Could not send keep alive periodically. %s" % err)
+        time.sleep(sleep_timer)

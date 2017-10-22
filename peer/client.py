@@ -11,9 +11,13 @@ def main():
     config = utils.load_config(args.config)
     peer_info = records.PeerInfo()
     peer_info.rfc_index_head = build_rfc_index()
-    t = utils.FuncThread(server, config, peer_info, PEER_ID, args.debug)
-    t.setDaemon(True)
-    t.start()
+    t1 = utils.FuncThread(server, config, peer_info, PEER_ID, args.debug)
+    t1.setDaemon(True)
+    t1.start()
+
+    t2 = utils.FuncThread(periodic_keep_alive, peer_info, config["rs"]["hostname"], config["rs"]["port"])
+    t2.setDaemon(True)
+    t2.start()
 
     last_time_updated = int(time.time())
     while True:
