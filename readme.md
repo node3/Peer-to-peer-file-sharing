@@ -1,7 +1,8 @@
-[IP Project 1](https://courses.ncsu.edu/csc573/lec/001/wrap/proj1.pdf)
+#### DESCRIPTION
+This project implements a peer-to-peer file sharing protocol. Click [here](https://github.com/atambol/p2p_protocol_implementation/blob/master/description.pdf) for a detailed description of the project.
 
-##INSTRUCTIONS TO RUN
-1. Download the repository on a ubuntu machine and untar it.
+#### INSTRUCTIONS TO RUN
+1. Download the repository on a ubuntu machine.
 
 2. Ensure that the python 2.7 is used. 
 
